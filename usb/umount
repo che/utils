@@ -1,0 +1,42 @@
+#!/bin/sh
+
+USB_CRYPT_DEV="sd${USB_CRYPT_DEV:=b1}"
+USB_CRYPT_NAME="usb_crypt_dev_${USB_CRYPT_DEV}"
+USB_MOUNT_DIR="/mnt/${USB_CRYPT_NAME}"
+USB_DEV_MAPPER="/dev/mapper/${USB_CRYPT_NAME}"
+
+
+cryptsetup --version > /dev/null
+CURRENT_EXIT_STATUS="$?"
+if [ ! $CURRENT_EXIT_STATUS -eq 0 ]; then
+  echo "ERROR: Please, install 'cryptsetup'"
+  exit 1
+fi
+
+if [ -e $USB_MOUNT_DIR ]; then
+  umount $USB_MOUNT_DIR
+  CURRENT_EXIT_STATUS="$?"
+  if [ $CURRENT_EXIT_STATUS -eq 0 ]; then
+     echo "'${USB_MOUNT_DIR}' has been unmounted"
+  else
+     echo "ERROR: '${USB_MOUNT_DIR}' has been not unmounted"
+     exit 1
+  fi
+else
+  echo "WARNING: '${USB_MOUNT_DIR}' does not exists"
+fi
+
+if [ -e $USB_DEV_MAPPER ]; then
+  cryptsetup luksClose $USB_DEV_MAPPER
+  CURRENT_EXIT_STATUS="$?"
+  if [ $CURRENT_EXIT_STATUS -eq 0 ]; then
+    echo "'${USB_DEV_MAPPER}' has been closed"
+    rm -rf $USB_MOUNT_DIR > /dev/null
+  else
+    echo "ERROR: '${USB_DEV_MAPPER}' has been not closed"
+  fi
+  exit $CURRENT_EXIT_STATUS
+else
+  echo "WARNING: '${USB_DEV_MAPPER}' does not exists"
+  exit 0
+fi

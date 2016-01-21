@@ -16,3 +16,10 @@ By defaul:
 License:
 
     MIT
+
+
+usb/mount & usb/umount
+------------
+
+Mount/umount USB by LUKS [bash script].
+

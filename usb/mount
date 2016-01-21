@@ -1,0 +1,43 @@
+#!/bin/sh
+
+USB_CRYPT_DEV="sd${USB_CRYPT_DEV:=b1}"
+USB_CRYPT_NAME="usb_crypt_dev_${USB_CRYPT_DEV}"
+USB_SYSTEM_DEV="/dev/${USB_CRYPT_DEV}"
+USB_MOUNT_DIR="/mnt/${USB_CRYPT_NAME}"
+
+
+cryptsetup --version > /dev/null
+CURRENT_EXIT_STATUS="$?"
+if [ ! $CURRENT_EXIT_STATUS -eq 0 ]; then
+  echo "ERROR: Please, install 'cryptsetup'"
+  exit 1
+fi
+
+if [ -e $USB_SYSTEM_DEV ]; then
+  if [ ! -e $USB_MOUNT_DIR ]; then
+    cryptsetup luksOpen $USB_SYSTEM_DEV $USB_CRYPT_NAME
+    CURRENT_EXIT_STATUS="$?"
+    if [ $CURRENT_EXIT_STATUS -eq 0 ]; then
+       echo "'${USB_CRYPT_NAME}' has been opened"
+    else
+       echo "ERROR: '${USB_CRYPT_NAME}' has been not opened"
+       exit 1
+    fi
+
+    mkdir -p $USB_MOUNT_DIR && \
+    mount /dev/mapper/${USB_CRYPT_NAME} $USB_MOUNT_DIR
+    CURRENT_EXIT_STATUS="$?"
+    if [ $CURRENT_EXIT_STATUS -eq 0 ]; then
+      echo "'${USB_SYSTEM_DEV}' has been mounted to '${USB_MOUNT_DIR}'"
+    else
+      echo "ERROR: Something wrong"
+    fi
+    exit $CURRENT_EXIT_STATUS
+  else
+    echo "ERROR: '${$USB_MOUNT_DIR}' already exists"
+    exit 1
+  fi
+else
+  echo "EROOR: '${USB_SYSTEM_DEV}' does not exist"
+  exit 1
+fi
