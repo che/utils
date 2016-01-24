@@ -18,7 +18,7 @@ License:
     MIT
 
 
-usb/mount & usb/umount
+usb-luks/mount & usb-luks/umount
 ------------
 
 Mount/umount USB by LUKS [bash script].
