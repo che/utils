@@ -29,7 +29,7 @@ usb_mapper_kill_proccesses()
 
     if [ -z "$usb_mapper_pids" ]
     then
-        umount -l $USB_MOUNT_DIR$$
+        umount -l $USB_MOUNT_DIR
         echo "WARNING: '${USB_MOUNT_DIR}' has been unmounted lazily"
     else
         echo "WARNING: Killing proccesses${usb_mapper_pids} for '$USB_MOUNT_DIR'"
