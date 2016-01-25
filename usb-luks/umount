@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 USB_CRYPT_DEV="${USB_CRYPT_DEV:=$1}"
 USB_CRYPT_DEV="sd${USB_CRYPT_DEV:=b1}"
@@ -18,6 +18,26 @@ cryptsetup_check()
     fi
 }
 
+usb_mapper_kill_proccesses()
+{
+    local usb_mapper_pids=""
+
+    for i in $(lsof -Fp $USB_MOUNT_DIR 2>/dev/null)
+    do
+        usb_mapper_pids="$usb_mapper_pids ${i/p/}"
+    done
+
+    if [ -z "$usb_mapper_pids" ]
+    then
+        umount -l $USB_MOUNT_DIR$$
+        echo "WARNING: '${USB_MOUNT_DIR}' has been unmounted lazily"
+    else
+        echo "WARNING: Killing proccesses${usb_mapper_pids} for '$USB_MOUNT_DIR'"
+        kill -9 $usb_mapper_pids
+        usb_mapper_umount
+    fi
+}
+
 usb_mapper_umount()
 {
     if [ -e $USB_MOUNT_DIR ]
@@ -30,8 +50,7 @@ usb_mapper_umount()
             rm -rf $USB_MOUNT_DIR
         else
             echo "ERROR: '${USB_MOUNT_DIR}' has been not unmounted correctly"
-            umount -l $USB_MOUNT_DIR
-            echo "WARNING: '${USB_MOUNT_DIR}' has been unmounted lazily"
+            usb_mapper_kill_proccesses
         fi
     else
         echo "WARNING: '${USB_MOUNT_DIR}' does not exists"

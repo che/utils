@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 USB_CRYPT_DEV="${USB_CRYPT_DEV:=$1}"
 USB_CRYPT_DEV="sd${USB_CRYPT_DEV:=b1}"
@@ -54,8 +54,7 @@ usb_luks_close()
 
 usb_mapper_mount()
 {
-    mkdir -p $USB_MOUNT_DIR && \
-    mount /dev/mapper/${USB_CRYPT_NAME} $USB_MOUNT_DIR
+    mkdir -p $USB_MOUNT_DIR && mount $USB_DEV_MAPPER $USB_MOUNT_DIR
     CURRENT_EXIT_STATUS="$?"
     if [ $CURRENT_EXIT_STATUS -eq 0 ]
     then
