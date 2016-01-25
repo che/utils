@@ -1,43 +1,90 @@
 #!/bin/sh
 
+USB_CRYPT_DEV="${USB_CRYPT_DEV:=$1}"
 USB_CRYPT_DEV="sd${USB_CRYPT_DEV:=b1}"
 USB_CRYPT_NAME="usb_crypt_dev_${USB_CRYPT_DEV}"
 USB_SYSTEM_DEV="/dev/${USB_CRYPT_DEV}"
 USB_MOUNT_DIR="/mnt/${USB_CRYPT_NAME}"
+USB_DEV_MAPPER="/dev/mapper/${USB_CRYPT_NAME}"
 
 
-cryptsetup --version > /dev/null
-CURRENT_EXIT_STATUS="$?"
-if [ ! $CURRENT_EXIT_STATUS -eq 0 ]; then
-  echo "ERROR: Please, install 'cryptsetup'"
-  exit 1
-fi
+cryptsetup_check()
+{
+    cryptsetup --version > /dev/null
+    CURRENT_EXIT_STATUS="$?"
+    if [ ! $CURRENT_EXIT_STATUS -eq 0 ]
+    then
+        echo "ERROR: Please, install 'cryptsetup'"
+        exit 1
+    fi
+}
 
-if [ -e $USB_SYSTEM_DEV ]; then
-  if [ ! -e $USB_MOUNT_DIR ]; then
+usb_luks_open()
+{
     cryptsetup luksOpen $USB_SYSTEM_DEV $USB_CRYPT_NAME
     CURRENT_EXIT_STATUS="$?"
-    if [ $CURRENT_EXIT_STATUS -eq 0 ]; then
-       echo "'${USB_CRYPT_NAME}' has been opened"
+    if [ $CURRENT_EXIT_STATUS -eq 0 ]
+    then
+        echo "'${USB_CRYPT_NAME}' has been opened"
     else
-       echo "ERROR: '${USB_CRYPT_NAME}' has been not opened"
-       exit 1
+        echo "ERROR: '${USB_CRYPT_NAME}' has been not opened"
+        exit 1
     fi
+}
 
+usb_luks_close()
+{
+    if [ -e $USB_DEV_MAPPER ]
+    then
+        cryptsetup luksClose $USB_DEV_MAPPER
+        CURRENT_EXIT_STATUS="$?"
+        if [ $CURRENT_EXIT_STATUS -eq 0 ]
+        then
+            echo "'${USB_DEV_MAPPER}' has been closed"
+            rm -rf $USB_MOUNT_DIR
+        else
+            echo "ERROR: '${USB_DEV_MAPPER}' has been not closed"
+        fi
+        exit $CURRENT_EXIT_STATUS
+    else
+        echo "WARNING: '${USB_DEV_MAPPER}' does not exists"
+        exit 0
+    fi
+}
+
+usb_mapper_mount()
+{
     mkdir -p $USB_MOUNT_DIR && \
     mount /dev/mapper/${USB_CRYPT_NAME} $USB_MOUNT_DIR
     CURRENT_EXIT_STATUS="$?"
-    if [ $CURRENT_EXIT_STATUS -eq 0 ]; then
-      echo "'${USB_SYSTEM_DEV}' has been mounted to '${USB_MOUNT_DIR}'"
+    if [ $CURRENT_EXIT_STATUS -eq 0 ]
+    then
+        echo "'${USB_SYSTEM_DEV}' has been mounted to '${USB_MOUNT_DIR}'"
     else
-      echo "ERROR: Something wrong"
+        echo "ERROR: Something wrong"
+        usb_luks_close
     fi
-    exit $CURRENT_EXIT_STATUS
-  else
-    echo "ERROR: '${$USB_MOUNT_DIR}' already exists"
-    exit 1
-  fi
-else
-  echo "EROOR: '${USB_SYSTEM_DEV}' does not exist"
-  exit 1
-fi
+    exit $CURRENT_EXIT_STATU
+}
+
+usb_luks_mount()
+{
+    if [ -e $USB_SYSTEM_DEV ]
+    then
+        if [ ! -e $USB_MOUNT_DIR ]
+        then
+            usb_luks_open
+            usb_mapper_mount
+        else
+            echo "ERROR: '${$USB_MOUNT_DIR}' already exists"
+            exit 1
+        fi
+    else
+        echo "EROOR: '${USB_SYSTEM_DEV}' does not exist"
+        exit 1
+    fi
+}
+
+
+cryptsetup_check
+usb_luks_mount
