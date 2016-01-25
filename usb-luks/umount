@@ -29,9 +29,9 @@ usb_mapper_umount()
             echo "'${USB_MOUNT_DIR}' has been unmounted"
             rm -rf $USB_MOUNT_DIR
         else
+            echo "ERROR: '${USB_MOUNT_DIR}' has been not unmounted correctly"
             umount -l $USB_MOUNT_DIR
-            echo "ERROR: '${USB_MOUNT_DIR}' has been not unmounted"
-            exit 1
+            echo "WARNING: '${USB_MOUNT_DIR}' has been unmounted lazily"
         fi
     else
         echo "WARNING: '${USB_MOUNT_DIR}' does not exists"
