@@ -31,3 +31,17 @@ License:
 
     MIT
 
+
+usb-luks/mount2 & usb-luks/umount2
+------------
+
+Mount/umount USB by double LUKS [bash script].
+
+By default:
+
+    USB_CRYPT_DEV=b1 (for sdb1)
+
+License:
+
+    MIT
+
