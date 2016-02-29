@@ -6,7 +6,7 @@ random-gen-user_pswd
 Random generate user name and password [bash script]:
 
     36 unique characters for username
-    94 unique characters for password
+    91 unique characters for password
 
 By default:
 
