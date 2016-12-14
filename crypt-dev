@@ -67,7 +67,7 @@ crypt_dev_message()
 crypt_dev_action_check()
 {
     case "$CRYPT_DEV_ACTION" in
-        mount | umount )
+        create | mount | umount )
         ;;
         * )
             crypt_dev_error_exit "Action '${CRYPT_DEV_ACTION}' is not supported"
@@ -152,6 +152,32 @@ linux_luks_is()
     echo "$?"
 }
 
+# Open LUKS device
+linux_luks_open()
+{
+    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
+    CRYPT_DEV_EXIT_STATUS="$?"
+    if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
+    then
+        crypt_dev_message "'${CRYPT_DEV_NAME}' has been opened"
+    else
+        crypt_dev_error_exit "'${CRYPT_DEV_NAME}' has been not opened"
+    fi
+}
+
+# Open LUKS device in mapper
+linux_luks_open_in()
+{
+    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
+    CRYPT_DEV_EXIT_STATUS="$?"
+    if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
+    then
+        crypt_dev_message "'${CRYPT_DEV_NAME_IN}' has been opened"
+    else
+        crypt_dev_error_exit "'${CRYPT_DEV_NAME_IN}' has been not opened"
+    fi
+}
+
 # Close LUKS device in mapper
 linux_luks_close_in()
 {
@@ -201,36 +227,42 @@ linux_luks_close()
 
 
 
+########    GNU/Linux -- LUKS -- Create
+
+
+
+
+# Create LUKS device in mapper
+linux_luks_create()
+{
+    local luks_create_options="--verify-passphrase --type luks --cipher aes-xts-essiv:sha256 --key-size 512 --hash sha512"
+
+    "$CRYPT_DEV_BIN_FILE" luksFormat "$CRYPT_DEV_SYSTEM" $luks_create_options
+    CRYPT_DEV_EXIT_STATUS="$?"
+    if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
+    then
+        crypt_dev_message "LUKS has been created on '${CRYPT_DEV_NAME}'"
+    else
+        crypt_dev_error_exit "LUKS has been not created on '${CRYPT_DEV_NAME}'"
+    fi
+}
+
+# Create device
+linux_create()
+{
+    linux_cryptsetup_check
+    linux_luks_create
+    linux_luks_open
+    linux_luks_close
+}
+
+
+
+
 ########    GNU/Linux -- LUKS -- Mount
 
 
 
-
-# Open LUKS device
-linux_luks_open()
-{
-    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
-    CRYPT_DEV_EXIT_STATUS="$?"
-    if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
-    then
-        crypt_dev_message "'${CRYPT_DEV_NAME}' has been opened"
-    else
-        crypt_dev_error_exit "'${CRYPT_DEV_NAME}' has been not opened"
-    fi
-}
-
-# Open LUKS device in mapper
-linux_luks_open_in()
-{
-    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
-    CRYPT_DEV_EXIT_STATUS="$?"
-    if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
-    then
-        crypt_dev_message "'${CRYPT_DEV_NAME_IN}' has been opened"
-    else
-        crypt_dev_error_exit "'${CRYPT_DEV_NAME_IN}' has been not opened"
-    fi
-}
 
 # Mount LUKS device
 linux_mapper_mount()
