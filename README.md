@@ -10,8 +10,8 @@ Random generate user name and password [bash script]:
 
 By default:
 
-    RANDOM_GEN_USERNAME_LENGTH=16
-    RANDOM_GEN_PASSWORD_LENGTH=256
+    RANDOM_GEN_USERNAME_LENGTH=32
+    RANDOM_GEN_PASSWORD_LENGTH=511
 
 License:
 

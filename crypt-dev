@@ -142,7 +142,7 @@ crypt_dev_exec()
 
 
 
-# 
+# Check installation cryptsetup
 linux_cryptsetup_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -151,7 +151,14 @@ linux_cryptsetup_check()
     fi
 }
 
-# 
+# Check LUKS device
+linux_luks_is()
+{
+    "$CRYPT_DEV_BIN_FILE" isLuks "$1" 2> /dev/null
+    echo "$?"
+}
+
+# Close LUKS device in mapper
 linux_luks_close_in()
 {
     if [ -e "$CRYPT_DEV_MAPPER_IN" ]
@@ -175,7 +182,7 @@ linux_luks_close_in()
     fi
 }
 
-# 
+# Close LUKS device
 linux_luks_close()
 {
     if [ -e "$CRYPT_DEV_MAPPER" ]
@@ -205,7 +212,7 @@ linux_luks_close()
 
 
 
-# 
+# Open LUKS device
 linux_luks_open()
 {
     "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
@@ -218,7 +225,7 @@ linux_luks_open()
     fi
 }
 
-# 
+# Open LUKS device in mapper
 linux_luks_open_in()
 {
     "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
@@ -231,10 +238,10 @@ linux_luks_open_in()
     fi
 }
 
-# 
+# Mount LUKS device
 linux_mapper_mount()
 {
-    mkdir -p "$CRYPT_DEV_MOUNT_DIR" && mount "$CRYPT_DEV_MAPPER_IN" "$CRYPT_DEV_MOUNT_DIR"
+    mkdir -p "$CRYPT_DEV_MOUNT_DIR" && mount "$1" "$CRYPT_DEV_MOUNT_DIR"
     CRYPT_DEV_EXIT_STATUS="$?"
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -242,22 +249,32 @@ linux_mapper_mount()
     else
         crypt_dev_error "Something wrong"
 
-        linux_luks_close_in
+        if [ $(linux_luks_is "$CRYPT_DEV_MAPPER_IN") -eq 0 ]
+        then
+            linux_luks_close_in
+        fi
         linux_luks_close
     fi
 
     exit $CRYPT_DEV_EXIT_STATUS
 }
 
-# 
+# Mount LUKS device in mapper
 linux_luks_mount()
 {
+    local crypt_dev_mapper="$CRYPT_DEV_MAPPER"
+
     if [ -e "$CRYPT_DEV_SYSTEM" ]
     then
         if [ ! -e "$CRYPT_DEV_MOUNT_DIR" ]
         then
-            linux_luks_open && linux_luks_open_in
-            linux_mapper_mount
+            linux_luks_open
+            if [ $(linux_luks_is "$CRYPT_DEV_MAPPER") -eq 0 ]
+            then
+                linux_luks_open_in
+                crypt_dev_mapper="$CRYPT_DEV_MAPPER_IN"
+            fi
+            linux_mapper_mount "$crypt_dev_mapper"
         else
             crypt_dev_error_exit "'${CRYPT_DEV_MOUNT_DIR}' already exists"
         fi
@@ -266,7 +283,7 @@ linux_luks_mount()
     fi
 }
 
-# 
+# Mount device
 linux_mount()
 {
     linux_cryptsetup_check
@@ -281,7 +298,7 @@ linux_mount()
 
 
 
-# 
+# Force umount LUKS device
 linux_luks_mapper_umount()
 {
     local crypt_dev_mapper_pids=""
@@ -304,7 +321,7 @@ linux_luks_mapper_umount()
     fi
 }
 
-# 
+# Umount LUKS device in mapper
 linux_luks_umount()
 {
     if [ -e "$CRYPT_DEV_MOUNT_DIR" ]
@@ -326,12 +343,15 @@ linux_luks_umount()
     fi
 }
 
-# 
+# Umount device
 linux_umount()
 {
     linux_cryptsetup_check
     linux_luks_umount
-    linux_luks_close_in
+    if [ $(linux_luks_is "$CRYPT_DEV_MAPPER_IN") -eq 0 ]
+    then
+        linux_luks_close_in
+    fi
     linux_luks_close
 }
 
@@ -351,7 +371,7 @@ linux_umount()
 
 
 
-# 
+# Check installation CGD
 netbsd_cgd_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -368,7 +388,7 @@ netbsd_cgd_check()
 
 
 
-# 
+# Mount device
 netbsd_mount()
 {
     netbsd_cgd_check
@@ -382,7 +402,7 @@ netbsd_mount()
 
 
 
-# 
+# Umount device
 netbsd_umount()
 {
     netbsd_cgd_check
@@ -404,7 +424,7 @@ netbsd_umount()
 
 
 
-# 
+# Check installation GELI
 freebsd_geli_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -421,7 +441,7 @@ freebsd_geli_check()
 
 
 
-# 
+# Mount device
 freebsd_mount()
 {
     freebsd_geli_check
@@ -435,7 +455,7 @@ freebsd_mount()
 
 
 
-# 
+# Umount device
 freebsd_umount()
 {
     freebsd_geli_check
@@ -457,12 +477,12 @@ freebsd_umount()
 
 
 
-# 
+# Check installation softraid and bioctl
 openbsd_svnd_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
     then
-        crypt_dev_error_exit "Please, install 'vnconfig' and/or execute as root"
+        crypt_dev_error_exit "Please, install 'softraid/bioctl' and/or execute as root"
     fi
 }
 
@@ -474,7 +494,7 @@ openbsd_svnd_check()
 
 
 
-# 
+# Mount device
 openbsd_mount()
 {
     openbsd_svnd_check
@@ -488,7 +508,7 @@ openbsd_mount()
 
 
 
-# 
+# Umount device
 openbsd_umount()
 {
     openbsd_svnd_check
@@ -501,7 +521,7 @@ openbsd_umount()
 
 
 
-################        Mac OS X -- ? (?)
+################        Mac OS X -- ?
 
 
 
@@ -509,5 +529,5 @@ openbsd_umount()
 
 
 
-
+# Execution
 crypt_dev_exec
