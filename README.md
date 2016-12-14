@@ -18,47 +18,20 @@ License:
     MIT
 
 
-crypt-dev (mount, umount)
+crypt-dev
 ------------
 
-Mount/umount device by LUKS for linux [shell script].
+Mount/umount device for GNU/Linux(LUKS), NetBSD(CGD), FreeBSD(GELI), OpenBSD(SVND) [shell script].
 
 By default:
 
     CRYPT_DEV_ACTION=mount
     CRYPT_DEV=sdb2
 
+Execute:
+
     crypt-dev [action] [device]
 
 License:
 
     MIT
-
-
-usb-luks/mount & usb-luks/umount
-------------
-
-Mount/umount USB by LUKS [shell script].
-
-By default:
-
-    USB_CRYPT_DEV=b1 (for sdb1)
-
-License:
-
-    MIT
-
-
-usb-luks/mount2 & usb-luks/umount2
-------------
-
-Mount/umount USB by double LUKS [shell script].
-
-By default:
-
-    USB_CRYPT_DEV=b1 (for sdb1)
-
-License:
-
-    MIT
-
