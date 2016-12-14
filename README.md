@@ -18,10 +18,27 @@ License:
     MIT
 
 
+crypt-dev (mount, umount)
+------------
+
+Mount/umount device by LUKS for linux [shell script].
+
+By default:
+
+    CRYPT_DEV_ACTION=mount
+    CRYPT_DEV=sdb2
+
+    crypt-dev [action] [device]
+
+License:
+
+    MIT
+
+
 usb-luks/mount & usb-luks/umount
 ------------
 
-Mount/umount USB by LUKS [bash script].
+Mount/umount USB by LUKS [shell script].
 
 By default:
 
@@ -35,7 +52,7 @@ License:
 usb-luks/mount2 & usb-luks/umount2
 ------------
 
-Mount/umount USB by double LUKS [bash script].
+Mount/umount USB by double LUKS [shell script].
 
 By default:
 

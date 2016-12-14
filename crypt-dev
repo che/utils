@@ -1,0 +1,101 @@
+#!/bin/sh
+
+CRYPT_DEV_DIR="${CRYPT_DEV_DIR:=$(cd "$(dirname "$0")" && pwd -P)}/"
+CRYPT_DEV_LIB_DIR="${CRYPT_DEV_DIR}crypt_dev/"
+
+CRYPT_DEV_ACTION_DEFAULT="mount"
+CRYPT_DEV_ACTION="${CRYPT_DEV_ACTION:=$1}"
+CRYPT_DEV_ACTION="${CRYPT_DEV_ACTION:=$CRYPT_DEV_ACTION_DEFAULT}"
+CRYPT_DEV_DEFAULT="sdb2"
+CRYPT_DEV="${CRYPT_DEV:=$2}"
+CRYPT_DEV="${CRYPT_DEV:=$CRYPT_DEV_DEFAULT}"
+
+CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
+CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
+CRYPT_DEV_SYSTEM="/dev/${CRYPT_DEV}"
+CRYPT_DEV_MOUNT_DIR="/mnt/${CRYPT_DEV_NAME}"
+CRYPT_DEV_MAPPER="/dev/mapper/${CRYPT_DEV_NAME}"
+CRYPT_DEV_MAPPER_IN="/dev/mapper/${CRYPT_DEV_NAME_IN}"
+CRYPT_DEV_EXIT_STATUS=
+CRYPT_DEV_OS=""
+
+
+# Print error message and exit
+crypt_dev_error()
+{
+    echo ""
+    echo "ERROR: ${1}"
+    [ ! -z "$2" ] && echo "$2"
+    echo ""
+
+    exit 1
+}
+
+# Action check
+crypt_dev_action_check()
+{
+    case "$CRYPT_DEV_ACTION" in
+        mount | umount )
+        ;;
+        * )
+            crypt_dev_error "crypt-dev action '${CRYPT_DEV_ACTION}' is not supported"
+        ;;
+    esac
+}
+
+# Device check
+crypt_dev_device_check()
+{
+    if [ ! -e "$CRYPT_DEV_SYSTEM" ]
+    then
+        crypt_dev_error "crypt-dev device '${CRYPT_DEV_SYSTEM}' does not exist"
+    fi
+}
+
+# Define current OS
+crypt_dev_define_os()
+{
+    case $(uname -s) in
+        Linux )
+            CRYPT_DEV_OS="linux"
+        ;;
+        Darwin )
+            CRYPT_DEV_OS="macosx"
+        ;;
+        NetBSD )
+            CRYPT_DEV_OS="netbsd"
+        ;;
+        OpenBSD )
+            CRYPT_DEV_OS="openbsd"
+        ;;
+        FreeBSD )
+            CRYPT_DEV_OS="freebsd"
+        ;;
+        * )
+            crypt_dev_error "Current OS does not supported for crypt-dev"
+        ;;
+    esac
+}
+
+# Load all crypt-dev libs
+crypt_dev_all_libs_load()
+{
+    for lib_file in $(ls "$CRYPT_DEV_LIB_DIR"*.sh "$CRYPT_DEV_LIB_DIR"*/*.sh)
+    do
+        . "$lib_file"
+    done
+}
+
+# Launch
+crypt_dev_launch()
+{
+    crypt_dev_action_check
+    crypt_dev_device_check
+    crypt_dev_define_os
+    crypt_dev_all_libs_load
+
+    ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}
+}
+
+
+crypt_dev_launch

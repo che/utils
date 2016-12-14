@@ -2,8 +2,8 @@
 
 LANG="C"
 
-RANDOM_GEN_USERNAME_LENGTH=${RANDOM_GEN_USERNAME_LENGTH:=16}
-RANDOM_GEN_PASSWORD_LENGTH=${RANDOM_GEN_PASSWORD_LENGTH:=256}
+RANDOM_GEN_USERNAME_LENGTH=${RANDOM_GEN_USERNAME_LENGTH:=32}
+RANDOM_GEN_PASSWORD_LENGTH=${RANDOM_GEN_PASSWORD_LENGTH:=511}
 
 RANDOM_GEN_USERNAME=""
 RANDOM_GEN_PASSWORD=""
@@ -13,7 +13,7 @@ CHARACTER_DOWNCASE="uwnmertyqiojklzxcpasdfghvb"
 CHARACTER_OTHER="E\`R!@T)X#I\$S%DF^&H:JK-Z;YC_=+}B.N\"M{~]/Q(W[O|P>A,GV<L'U"
 
 
-random_gen_characters()
+function random_gen_characters()
 {
     RANDOM_CHAR_TMP="${1:-${CHARACTER_DIGEST}${CHARACTER_DOWNCASE}}"
 
@@ -23,7 +23,8 @@ random_gen_characters()
 
     for (( n = 0; n < $RANDOM_COUNTER; n++ ))
     do
-        I=$RANDOM
+        local I=$RANDOM
+
         if [ "${I}" -eq "$(( (${I}/2) * 2 ))" ]
         then
             for (( i = 1; i < $RANDOM_CHAR_TMP_LEN; i++ ))
@@ -43,9 +44,10 @@ random_gen_characters()
     done
 }
 
-random_gen_username()
+function random_gen_username()
 {
     random_gen_characters
+
     USERNAME_CHARACTERS="$RANDOM_CHAR_TMP"
     USERNAME_CHARACTERS_SIZE=${#USERNAME_CHARACTERS}
 
@@ -56,6 +58,7 @@ random_gen_username()
     for (( u = 0; u < $(( ${RANDOM_GEN_USERNAME_LENGTH}/${USERNAME_CHARACTERS_SIZE} )); u++ ))
     do
         random_gen_characters
+
         USERNAME_CHARACTERS="$RANDOM_CHAR_TMP"
         RANDOM_GEN_USERNAME="${RANDOM_GEN_USERNAME}${USERNAME_CHARACTERS}"
     done
@@ -63,14 +66,15 @@ random_gen_username()
     echo "${RANDOM_GEN_USERNAME:0:${RANDOM_GEN_USERNAME_LENGTH}}"
 }
 
-random_gen_password()
+function random_gen_password()
 {
     PASSWORD_CHARACTERS="${CHARACTER_DIGEST}${CHARACTER_DOWNCASE}${CHARACTER_OTHER}"
     PASSWORD_CHARACTERS_SIZE=${#PASSWORD_CHARACTERS}
 
     for (( p = 0; p <= $(( ${RANDOM_GEN_PASSWORD_LENGTH}/${PASSWORD_CHARACTERS_SIZE} )); p++ ))
     do
-        random_gen_characters "$PASSWORD_CHARACTERS" 2048
+        random_gen_characters "$PASSWORD_CHARACTERS" 4096
+
         RANDOM_GEN_PASSWORD="${RANDOM_GEN_PASSWORD}${RANDOM_CHAR_TMP}"
     done
 
