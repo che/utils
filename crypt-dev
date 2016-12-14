@@ -20,7 +20,7 @@ CRYPT_DEV_EXIT_STATUS=
 CRYPT_DEV_BIN_FILE=""
 CRYPT_DEV_OS=""
 
-# System utilities: echo, rm, mkdir, exit, mount, umount, uname, kill
+# System utilities: echo, rm, mkdir, exit, mount, umount, uname, kill, lsof
 
 
 
@@ -59,10 +59,8 @@ crypt_dev_warning()
 # Print message
 crypt_dev_message()
 {
-    echo ""
     echo "$1"
     [ ! -z "$2" ] && echo "$2"
-    echo ""
 }
 
 # Action check
@@ -134,10 +132,6 @@ crypt_dev_exec()
 
 
 ################        GNU/Linux -- LUKS (cryptsetup)
-
-
-
-
 
 
 
@@ -348,7 +342,7 @@ linux_umount()
 {
     linux_cryptsetup_check
     linux_luks_umount
-    if [ $(linux_luks_is "$CRYPT_DEV_MAPPER_IN") -eq 0 ]
+    if [ $(linux_luks_is "$CRYPT_DEV_MAPPER_IN") -lt 2 ]
     then
         linux_luks_close_in
     fi
@@ -363,10 +357,6 @@ linux_umount()
 
 
 ################        NetBSD -- CGD (cgd)
-
-
-
-
 
 
 
@@ -420,10 +410,6 @@ netbsd_umount()
 
 
 
-
-
-
-
 # Check installation GELI
 freebsd_geli_check()
 {
@@ -473,10 +459,6 @@ freebsd_umount()
 
 
 
-
-
-
-
 # Check installation softraid and bioctl
 openbsd_svnd_check()
 {
@@ -522,9 +504,6 @@ openbsd_umount()
 
 
 ################        Mac OS X -- ?
-
-
-
 
 
 
