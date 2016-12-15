@@ -18,10 +18,16 @@ License:
     MIT
 
 
-crypt-dev
+crypt-dev [shell script]
 ------------
 
-Mount/umount device for GNU/Linux(LUKS), NetBSD(CGD), FreeBSD(GELI), OpenBSD(SVND) [shell script].
+Create, mount, umount device for:
+
+    GNU/Linux (LUKS)
+    NetBSD (CGD)
+    FreeBSD (GELI)
+    OpenBSD (SVND)
+    Mac OS X (FileVault2)
 
 By default:
 
