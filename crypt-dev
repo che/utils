@@ -212,7 +212,7 @@ linux_luks_close()
             crypt_dev_error_exit "'${CRYPT_DEV_MAPPER}' has not been closed"
         fi
     else
-        crypt_dev_warning "'${CRYPT_DEV_MAPPER}' does not exists"
+        crypt_dev_warning "'${CRYPT_DEV_MAPPER}' does not exist"
         exit 0
     fi
 }
@@ -346,7 +346,7 @@ linux_luks_umount()
             linux_luks_mapper_umount
         fi
     else
-        crypt_dev_warning "'${CRYPT_DEV_MOUNT_DIR}' does not exists"
+        crypt_dev_warning "'${CRYPT_DEV_MOUNT_DIR}' does not exist"
     fi
 }
 
