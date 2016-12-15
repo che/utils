@@ -82,7 +82,7 @@ crypt_dev_device_check()
 # Define current OS bin file
 crypt_dev_define_os_bin()
 {
-    case $(uname -s) in
+    case "$(uname -s)" in
         Linux )
             CRYPT_DEV_OS="linux"
             CRYPT_DEV_BIN_FILE="$(which cryptsetup)"
@@ -149,7 +149,7 @@ linux_luks_is()
 linux_luks_open()
 {
     "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
-    CRYPT_DEV_EXIT_STATUS="$?"
+    CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
         crypt_dev_message "'${CRYPT_DEV_NAME}' has been opened"
@@ -162,7 +162,7 @@ linux_luks_open()
 linux_luks_open_in()
 {
     "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
-    CRYPT_DEV_EXIT_STATUS="$?"
+    CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
         crypt_dev_message "'${CRYPT_DEV_NAME_IN}' has been opened"
@@ -177,7 +177,7 @@ linux_luks_close_in()
     if [ -e "$CRYPT_DEV_MAPPER_IN" ]
     then
         "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER_IN"
-        CRYPT_DEV_EXIT_STATUS="$?"
+        CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
             crypt_dev_message "'${CRYPT_DEV_MAPPER_IN}' has been closed"
@@ -191,7 +191,7 @@ linux_luks_close_in()
             crypt_dev_error_exit "'${CRYPT_DEV_MAPPER_IN}' has not been closed"
         fi
     else
-        crypt_dev_warning "'${CRYPT_DEV_MAPPER_IN}' does not exists"
+        crypt_dev_warning "'${CRYPT_DEV_MAPPER_IN}' does not exist"
     fi
 }
 
@@ -201,7 +201,7 @@ linux_luks_close()
     if [ -e "$CRYPT_DEV_MAPPER" ]
     then
         "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER"
-        CRYPT_DEV_EXIT_STATUS="$?"
+        CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
             crypt_dev_message "'${CRYPT_DEV_MAPPER}' has been closed"
@@ -227,7 +227,7 @@ linux_luks_create()
     local luks_create_options="--verify-passphrase --type luks --cipher aes-xts-essiv:sha256 --key-size 512 --hash sha512"
 
     "$CRYPT_DEV_BIN_FILE" luksFormat "$CRYPT_DEV_SYSTEM" $luks_create_options
-    CRYPT_DEV_EXIT_STATUS="$?"
+    CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
         crypt_dev_message "LUKS has been created on '${CRYPT_DEV_NAME}'"
@@ -253,7 +253,7 @@ linux_create()
 linux_mapper_mount()
 {
     mkdir -p "$CRYPT_DEV_MOUNT_DIR" && mount "$1" "$CRYPT_DEV_MOUNT_DIR"
-    CRYPT_DEV_EXIT_STATUS="$?"
+    CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
         crypt_dev_message "'${CRYPT_DEV_SYSTEM}' has been mounted to '${CRYPT_DEV_MOUNT_DIR}'"
@@ -334,7 +334,7 @@ linux_luks_umount()
     if [ -e "$CRYPT_DEV_MOUNT_DIR" ]
     then
         umount "$CRYPT_DEV_MOUNT_DIR"
-        CURRENT_EXIT_STATUS="$?"
+        CURRENT_EXIT_STATUS=$?
         if [ $CURRENT_EXIT_STATUS -eq 0 ]
         then
             crypt_dev_message "'${CRYPT_DEV_MOUNT_DIR}' has been unmounted"
