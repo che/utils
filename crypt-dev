@@ -108,7 +108,7 @@ crypt_dev_define_os_bin()
             CRYPT_DEV_BIN_FILE="$(which fscrypto)"
         ;;
         * )
-            crypt_dev_error_exit "Current OS does not supported"
+            crypt_dev_error_exit "Current OS is not supported"
         ;;
     esac
 }
@@ -154,7 +154,7 @@ linux_luks_open()
     then
         crypt_dev_message "'${CRYPT_DEV_NAME}' has been opened"
     else
-        crypt_dev_error_exit "'${CRYPT_DEV_NAME}' has been not opened"
+        crypt_dev_error_exit "'${CRYPT_DEV_NAME}' has not been opened"
     fi
 }
 
@@ -167,7 +167,7 @@ linux_luks_open_in()
     then
         crypt_dev_message "'${CRYPT_DEV_NAME_IN}' has been opened"
     else
-        crypt_dev_error_exit "'${CRYPT_DEV_NAME_IN}' has been not opened"
+        crypt_dev_error_exit "'${CRYPT_DEV_NAME_IN}' has not been opened"
     fi
 }
 
@@ -188,7 +188,7 @@ linux_luks_close_in()
                 exit 0
             fi
         else
-            crypt_dev_error_exit "'${CRYPT_DEV_MAPPER_IN}' has been not closed"
+            crypt_dev_error_exit "'${CRYPT_DEV_MAPPER_IN}' has not been closed"
         fi
     else
         crypt_dev_warning "'${CRYPT_DEV_MAPPER_IN}' does not exists"
@@ -209,7 +209,7 @@ linux_luks_close()
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
             exit 0
         else
-            crypt_dev_error_exit "'${CRYPT_DEV_MAPPER}' has been not closed"
+            crypt_dev_error_exit "'${CRYPT_DEV_MAPPER}' has not been closed"
         fi
     else
         crypt_dev_warning "'${CRYPT_DEV_MAPPER}' does not exists"
@@ -232,7 +232,7 @@ linux_luks_create()
     then
         crypt_dev_message "LUKS has been created on '${CRYPT_DEV_NAME}'"
     else
-        crypt_dev_error_exit "LUKS has been not created on '${CRYPT_DEV_NAME}'"
+        crypt_dev_error_exit "LUKS has not been created on '${CRYPT_DEV_NAME}'"
     fi
 }
 
@@ -341,7 +341,7 @@ linux_luks_umount()
 
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
         else
-            crypt_dev_error "'${CRYPT_DEV_MOUNT_DIR}' has been not unmounted correctly"
+            crypt_dev_error "'${CRYPT_DEV_MOUNT_DIR}' has not been unmounted correctly"
 
             linux_luks_mapper_umount
         fi
