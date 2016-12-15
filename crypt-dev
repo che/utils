@@ -86,7 +86,7 @@ crypt_dev_device_check()
 crypt_dev_device_fs_check()
 {
     case "$CRYPT_DEV_FS" in
-        fat | vfat | ext4 )
+        ext4 | fat )
         ;;
         * )
             crypt_dev_error_exit "Device FS '${CRYPT_DEV_FS}' is not supported"
