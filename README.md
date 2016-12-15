@@ -40,37 +40,37 @@ Capabilities:
 
     ---------------------------------------
     |  Operation  |      File system      |
-    -   system    |------------------------
-    |             |   ext4   |  fat (32)  |
-    -:-----------:-:--------:-:----------:-
-    |             |  create  |   create   |
-    |  GNU/Linux  |  mount   |   mount    |
-    |             |  umount  |   umount   |
+    |   system    |------------------------
+    |             |  fat (32)  |   ext4   |
+    -:-----------:-:----------:-:--------:-
+    |             |   create   |  create  |
+    |  GNU/Linux  |   mount    |  mount   |
+    |             |   umount   |  umount  |
     ---------------------------------------
-    |             |  mount   |   create   |
-    |   NetBSD    |  umount  |   mount    |
-    |             |          |   umount   |
+    |             |   create   |  mount   |
+    |   NetBSD    |   mount    |  umount  |
+    |             |   umount   |          |
     ---------------------------------------
-    |             |  mount   |   create   |
-    |   FreeBSD   |  umount  |   mount    |
-    |             |   (RO)   |   umount   |
+    |             |   create   |  mount   |
+    |   FreeBSD   |   mount    |  umount  |
+    |             |   umount   |   (RO)   |
     ---------------------------------------
-    |             |  mount   |   create   |
-    |   OpenBSD   |  umount  |   mount    |
-    |             |          |   umount   |
+    |             |   create   |  mount   |
+    |   OpenBSD   |   mount    |  umount  |
+    |             |   umount   |          |
     ---------------------------------------
-    |             |  mount   |   create   |
-    |  Mac OS X   |  umount  |   mount    |
-    |             |          |   umount   |
+    |             |   create   |  mount   |
+    |  Mac OS X   |   mount    |  umount  |
+    |             |   umount   |          |
     ---------------------------------------
-    |             |          |   create   |
-    |     QNX     |     x    |   mount    |
-    |             |          |   umount   |
+    |             |   create   |          |
+    |     QNX     |   mount    |     x    |
+    |             |   umount   |          |
     ---------------------------------------
 
 Execute:
 
-    crypt-dev [action] [device] [filesystem]
+    crypt-dev [action] [device] [file system]
 
 License:
 
