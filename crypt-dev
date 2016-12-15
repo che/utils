@@ -9,6 +9,9 @@ CRYPT_DEV_ACTION="${CRYPT_DEV_ACTION:=$CRYPT_DEV_ACTION_DEFAULT}"
 CRYPT_DEV_DEFAULT="sdb2"
 CRYPT_DEV="${CRYPT_DEV:=$2}"
 CRYPT_DEV="${CRYPT_DEV:=$CRYPT_DEV_DEFAULT}"
+CRYPT_DEV_FS_DEFAULT="ext4"
+CRYPT_DEV_FS="${CRYPT_DEV_FS:=$3}"
+CRYPT_DEV_FS="${CRYPT_DEV_FS:=$CRYPT_DEV_FS_DEFAULT}"
 
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
 CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
@@ -24,7 +27,7 @@ CRYPT_DEV_OS=""
 ########    Main
 
 
-# System utilities: echo, rm, mkdir, exit, mount, umount, uname, kill, lsof
+# System utilities: echo, rm, mkdir, exit, mount, umount, uname, kill, lsof, which
 
 
 # Print error message and exit
@@ -79,6 +82,18 @@ crypt_dev_device_check()
     fi
 }
 
+# Device FS check
+crypt_dev_device_fs_check()
+{
+    case "$CRYPT_DEV_FS" in
+        fat | vfat | ext4 )
+        ;;
+        * )
+            crypt_dev_error_exit "Device FS '${CRYPT_DEV_FS}' is not supported"
+        ;;
+    esac
+}
+
 # Define current OS bin file
 crypt_dev_define_os_bin()
 {
@@ -118,6 +133,7 @@ crypt_dev_exec()
 {
     crypt_dev_action_check
     crypt_dev_device_check
+    crypt_dev_device_fs_check
     crypt_dev_define_os_bin
 
     ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}
@@ -148,7 +164,7 @@ linux_luks_is()
 # Open LUKS device
 linux_luks_open()
 {
-    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
+    "$CRYPT_DEV_BIN_FILE" open "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -161,7 +177,7 @@ linux_luks_open()
 # Open LUKS device in mapper
 linux_luks_open_in()
 {
-    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
+    "$CRYPT_DEV_BIN_FILE" open "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -176,7 +192,7 @@ linux_luks_close_in()
 {
     if [ -e "$CRYPT_DEV_MAPPER_IN" ]
     then
-        "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER_IN"
+        "$CRYPT_DEV_BIN_FILE" close "$CRYPT_DEV_MAPPER_IN"
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
@@ -200,7 +216,7 @@ linux_luks_close()
 {
     if [ -e "$CRYPT_DEV_MAPPER" ]
     then
-        "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER"
+        "$CRYPT_DEV_BIN_FILE" close "$CRYPT_DEV_MAPPER"
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
@@ -230,10 +246,24 @@ linux_luks_create()
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
-        crypt_dev_message "LUKS has been created on '${CRYPT_DEV_NAME}'"
+        crypt_dev_message "'${CRYPT_DEV_SYSTEM}' has been encrypted"
     else
-        crypt_dev_error_exit "LUKS has not been created on '${CRYPT_DEV_NAME}'"
+        crypt_dev_error_exit "'${CRYPT_DEV_SYSTEM}' has not been encrypted"
     fi
+}
+
+# Create file system on device in mapper
+linux_luks_create_fs()
+{
+    mkfs -t "$CRYPT_DEV_FS" "$CRYPT_DEV_MAPPER"
+    CRYPT_DEV_EXIT_STATUS=$?
+    if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
+    then
+        crypt_dev_message "FS '${CRYPT_DEV_FS}' has been created on '${CRYPT_DEV_MAPPER}'"
+    else
+        crypt_dev_error_exit "FS '${CRYPT_DEV_FS}' has not been created on '${CRYPT_DEV_MAPPER}'"
+    fi
+    sleep 2
 }
 
 # Create device
@@ -242,6 +272,7 @@ linux_create()
     linux_cryptsetup_check
     linux_luks_create
     linux_luks_open
+    linux_luks_create_fs
     linux_luks_close
 }
 
@@ -337,11 +368,11 @@ linux_luks_umount()
         CURRENT_EXIT_STATUS=$?
         if [ $CURRENT_EXIT_STATUS -eq 0 ]
         then
-            crypt_dev_message "'${CRYPT_DEV_MOUNT_DIR}' has been unmounted"
+            crypt_dev_message "'${CRYPT_DEV_SYSTEM}' has been unmounted from '${CRYPT_DEV_MOUNT_DIR}'"
 
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
         else
-            crypt_dev_error "'${CRYPT_DEV_MOUNT_DIR}' has not been unmounted correctly"
+            crypt_dev_error "'${CRYPT_DEV_SYSTEM}' has not been unmounted correctly from '${CRYPT_DEV_MOUNT_DIR}'"
 
             linux_luks_mapper_umount
         fi
