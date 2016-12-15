@@ -12,6 +12,12 @@ CRYPT_DEV="${CRYPT_DEV:=$CRYPT_DEV_DEFAULT}"
 CRYPT_DEV_FS_DEFAULT="ext4"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$3}"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$CRYPT_DEV_FS_DEFAULT}"
+CRYPT_DEV_LEVEL_DEFAULT=1
+CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$4}"
+CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$CRYPT_DEV_LEVEL_DEFAULT}"
+CRYPT_DEV_FS_NAME_DEFAULT="CRYPTDEV"
+CRYPT_DEV_FS_NAME="${CRYPT_DEV_FS_NAME:=$5}"
+CRYPT_DEV_FS_NAME="${CRYPT_DEV_FS_NAME:=$CRYPT_DEV_FS_NAME_DEFAULT}"
 
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
 CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
@@ -86,12 +92,21 @@ crypt_dev_device_check()
 crypt_dev_device_fs_check()
 {
     case "$CRYPT_DEV_FS" in
-        ext4 | fat )
+        fat32 | vfat | ext4 )
         ;;
         * )
             crypt_dev_error_exit "Device FS '${CRYPT_DEV_FS}' is not supported"
         ;;
     esac
+}
+
+# Creation level check
+crypt_dev_level_check()
+{
+    if [ $CRYPT_DEV_LEVEL -lt 1 -o $CRYPT_DEV_LEVEL -gt 2 ]
+    then
+        crypt_dev_error_exit "Level '${CRYPT_DEV_LEVEL}' but must be 1 or 2"
+    fi
 }
 
 # Define current OS bin file
@@ -134,6 +149,7 @@ crypt_dev_exec()
     crypt_dev_action_check
     crypt_dev_device_check
     crypt_dev_device_fs_check
+    crypt_dev_level_check
     crypt_dev_define_os_bin
 
     ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}
@@ -242,26 +258,33 @@ linux_luks_create()
 {
     local luks_create_options="--verify-passphrase --type luks --cipher aes-xts-essiv:sha256 --key-size 512 --hash sha512"
 
-    "$CRYPT_DEV_BIN_FILE" luksFormat "$CRYPT_DEV_SYSTEM" $luks_create_options
+    "$CRYPT_DEV_BIN_FILE" luksFormat "$1" $luks_create_options
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
-        crypt_dev_message "'${CRYPT_DEV_SYSTEM}' has been encrypted"
+        crypt_dev_message "Device '${1}' has been encrypted"
     else
-        crypt_dev_error_exit "'${CRYPT_DEV_SYSTEM}' has not been encrypted"
+        crypt_dev_error_exit "Device '${1}' has not been encrypted"
     fi
 }
 
 # Create file system on device in mapper
 linux_luks_create_fs()
 {
-    mkfs -t "$CRYPT_DEV_FS" "$CRYPT_DEV_MAPPER"
+    local mkfs_create_options=" -L ${CRYPT_DEV_FS_NAME}"
+
+    if [ "$CRYPT_DEV_FS_NAME" = "fat32" -o "$CRYPT_DEV_FS_NAME" = "vfat" ]
+    then
+        mkfs_create_options=" -F 32 -n ${CRYPT_DEV_FS_NAME}"
+    fi
+
+    mkfs -t "$CRYPT_DEV_FS" $mkfs_create_options "$1"
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
-        crypt_dev_message "FS '${CRYPT_DEV_FS}' has been created on '${CRYPT_DEV_MAPPER}'"
+        crypt_dev_message "FS '${CRYPT_DEV_FS}' has been created on '${1}'"
     else
-        crypt_dev_error_exit "FS '${CRYPT_DEV_FS}' has not been created on '${CRYPT_DEV_MAPPER}'"
+        crypt_dev_error_exit "FS '${CRYPT_DEV_FS}' has not been created on '${1}'"
     fi
     sleep 2
 }
@@ -270,9 +293,17 @@ linux_luks_create_fs()
 linux_create()
 {
     linux_cryptsetup_check
-    linux_luks_create
+    linux_luks_create "$CRYPT_DEV_SYSTEM"
     linux_luks_open
-    linux_luks_create_fs
+    if [ $CRYPT_DEV_LEVEL -eq 1 ]
+    then
+        linux_luks_create_fs "$CRYPT_DEV_MAPPER"
+    else
+        linux_luks_create "$CRYPT_DEV_MAPPER"
+        linux_luks_open_in
+        linux_luks_create_fs "$CRYPT_DEV_MAPPER_IN"
+        linux_luks_close_in
+    fi
     linux_luks_close
 }
 

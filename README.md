@@ -35,42 +35,44 @@ By default environment variables:
     CRYPT_DEV_ACTION=mount
     CRYPT_DEV=sdb2
     CRYPT_DEV_FS=ext4
+    CRYPT_DEV_LEVEL=1
+    CRYPT_DEV_FS_NAME=CRYPTDEV
 
 Capabilities:
 
-    ---------------------------------------
-    |  Operation  |      File system      |
-    |   system    |------------------------
-    |             |  fat (32)  |   ext4   |
-    -:-----------:-:----------:-:--------:-
-    |             |   create   |  create  |
-    |  GNU/Linux  |   mount    |  mount   |
-    |             |   umount   |  umount  |
-    ---------------------------------------
-    |             |   create   |  mount   |
-    |   NetBSD    |   mount    |  umount  |
-    |             |   umount   |          |
-    ---------------------------------------
-    |             |   create   |  mount   |
-    |   FreeBSD   |   mount    |  umount  |
-    |             |   umount   |   (RO)   |
-    ---------------------------------------
-    |             |   create   |  mount   |
-    |   OpenBSD   |   mount    |  umount  |
-    |             |   umount   |          |
-    ---------------------------------------
-    |             |   create   |  mount   |
-    |  Mac OS X   |   mount    |  umount  |
-    |             |   umount   |          |
-    ---------------------------------------
-    |             |   create   |          |
-    |     QNX     |   mount    |     x    |
-    |             |   umount   |          |
-    ---------------------------------------
+    ------------------------------------------------
+    |  Operation  |          File system           |
+    |   system    |:------------------------------:-
+    |             |  fat32   |   vfat   |   ext4   |
+    -:-----------:-:--------:-:--------:-:--------:-
+    |             |  create  |  create  |  create  |
+    |  GNU/Linux  |  mount   |  mount   |  mount   |
+    |             |  umount  |  umount  |  umount  |
+    ------------------------------------------------
+    |             |  create  |  mount   |  mount   |
+    |   NetBSD    |  mount   |  umount  |  umount  |
+    |             |  umount  |          |          |
+    ------------------------------------------------
+    |             |  create  |  mount   |  mount   |
+    |   FreeBSD   |  mount   |  umount  |  umount  |
+    |             |  umount  |          |   (RO)   |
+    ------------------------------------------------
+    |             |  create  |  mount   |  mount   |
+    |   OpenBSD   |  mount   |  umount  |  umount  |
+    |             |  umount  |          |          |
+    ------------------------------------------------
+    |             |  create  |  mount   |  mount   |
+    |  Mac OS X   |  mount   |  umount  |  umount  |
+    |             |  umount  |          |          |
+    ------------------------------------------------
+    |             |  create  |  mount   |          |
+    |     QNX     |  mount   |  umount  |     x    |
+    |             |  umount  |          |          |
+    ------------------------------------------------
 
 Execute:
 
-    crypt-dev [action] [device] [file system]
+    crypt-dev [action] [device] [file system] [level] [file system name]
 
 License:
 
