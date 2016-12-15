@@ -103,6 +103,10 @@ crypt_dev_define_os_bin()
             CRYPT_DEV_OS="macosx"
             CRYPT_DEV_BIN_FILE="$(which hdiutil)"
         ;;
+        QNX )
+            CRYPT_DEV_OS="qnx"
+            CRYPT_DEV_BIN_FILE="$(which fscrypto)"
+        ;;
         * )
             crypt_dev_error_exit "Current OS does not supported"
         ;;
@@ -364,7 +368,7 @@ linux_umount()
 ################        NetBSD -- CGD (cgd)
 
 
-# Check installation CGD
+# Check installation cgd
 netbsd_cgd_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -409,7 +413,7 @@ netbsd_umount()
 ################        FreeBSD -- GELI (geli)
 
 
-# Check installation GELI
+# Check installation geli
 freebsd_geli_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -499,7 +503,7 @@ openbsd_umount()
 ################        Mac OS X -- FileVault2 (hdiutil)
 
 
-# Check installation CGD
+# Check installation hdiutil
 macosx_hdiutil_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -538,6 +542,50 @@ macosx_umount()
     macosx_hdiutil_check
 }
 
+
+
+
+################        QNX -- FSCrypto (fscrypto)
+
+
+# Check installation fscrypto
+qnx_fscrypto_check()
+{
+    if [ -z "$CRYPT_DEV_BIN_FILE" ]
+    then
+        crypt_dev_error_exit "Please, install 'fscrypto' and/or execute as root"
+    fi
+}
+
+
+########    QNX -- FSCrypto -- Create
+
+
+# Create device
+qnx_create()
+{
+    qnx_fscrypto_check
+}
+
+
+########    QNX -- FSCrypto -- Mount
+
+
+# Mount device
+qnx_mount()
+{
+    qnx_fscrypto_check
+}
+
+
+########    QNX -- FSCrypto -- Umount
+
+
+# Umount device
+qnx_umount()
+{
+    qnx_fscrypto_check
+}
 
 
 

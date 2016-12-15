@@ -28,6 +28,7 @@ Create, mount, umount device for:
     FreeBSD (GELI)
     OpenBSD (SVND)
     Mac OS X (FileVault2)
+    QNX (FSCrypto)
 
 By default:
 
