@@ -114,10 +114,9 @@ crypt_dev_fs_name_check()
 {
     if [ ${#CRYPT_DEV_FS_NAME} -gt 11 ]
     then
-        crypt_dev_error_exit "FS name size '${CRYPT_DEV_FS_NAME}' must be less 16"
+        crypt_dev_error_exit "FS name size '${CRYPT_DEV_FS_NAME}' must be less 11"
     fi
 }
-
 
 # Define current OS bin file
 crypt_dev_define_os_bin()

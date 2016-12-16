@@ -18,7 +18,7 @@ License:
     MIT
 
 
-crypt-dev [shell script]
+crypt-dev
 ------------
 
 Create, mount, umount device for:
@@ -70,7 +70,7 @@ Capabilities:
     |             |  umount  |          |          |
     ------------------------------------------------
 
-Execute:
+Execute (shell script):
 
     crypt-dev [action] [device] [file system] [level] [file system name]
 
