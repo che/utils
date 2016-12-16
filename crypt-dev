@@ -21,11 +21,12 @@ CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$CRYPT_DEV_LEVEL_DEFAULT}"
 CRYPT_DEV_LEVEL_MIN=$CRYPT_DEV_LEVEL_DEFAULT
 CRYPT_DEV_LEVEL_MAX=2
 
-CRYPT_DEV_NAME_DEFAULT="crypt-dev"
-CRYPT_DEV_NAME="${CRYPT_DEV_NAME:=$5}"
-CRYPT_DEV_NAME="${CRYPT_DEV_NAME:=$CRYPT_DEV_NAME_DEFAULT}"
-CRYPT_DEV_NAME_SIZE=16
-CRYPT_DEV_FAT_NAME_SIZE=11
+CRYPT_DEV_LABEL_DEFAULT="crypt-dev"
+CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$5}"
+CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$CRYPT_DEV_LABEL_DEFAULT}"
+CRYPT_DEV_LABEL_SIZE=16
+CRYPT_DEV_FAT_LABEL_SIZE=11
+CRYPT_DEV_LABEL_CHARACTERS_ARRAY="_ - 1 2 3 4 5 6 7 8 9 0 a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
 
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
 CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
@@ -118,19 +119,47 @@ crypt_dev_level_check()
     fi
 }
 
-# Device file system name size check
-crypt_dev_name_size_check()
+# Device label size check
+crypt_dev_label_size_check()
 {
-    local device_name_size=$CRYPT_DEV_NAME_SIZE
+    local device_label_size=$CRYPT_DEV_LABEL_SIZE
 
     if [ "$CRYPT_DEV_FS" = "fat32" -o "$CRYPT_DEV_FS" = "vfat" ]
     then
-        device_name_size=$CRYPT_DEV_FAT_NAME_SIZE
+        device_label_size=$CRYPT_DEV_FAT_NAME_SIZE
     fi
 
-    if [ ${#CRYPT_DEV_NAME} -gt $device_name_size ]
+    if [ ${#CRYPT_DEV_LABEL} -gt $device_label_size ]
     then
-        crypt_dev_error_exit "Device name size '${CRYPT_DEV_NAME}' must be less ${device_name_size}"
+        crypt_dev_error_exit "Device label size '${CRYPT_DEV_LABEL}' must be less ${device_label_size}"
+    fi
+}
+
+# Device label characters check
+crypt_dev_label_characters_check()
+{
+    local label_size=${#CRYPT_DEV_LABEL}
+    local label_count=0
+    local count=0
+    local device_label="$CRYPT_DEV_LABEL"
+
+    while [ $label_size -gt $count ]
+    do
+        count=$((count + 1))
+
+        for char in $CRYPT_DEV_LABEL_CHARACTERS_ARRAY
+        do
+            if [ ! "${device_label#${char}}" = "$device_label" ]
+            then
+                device_label="${device_label#$char}"
+                label_count=$((label_count + 1))
+            fi
+        done
+    done
+
+    if [ ! $label_size -eq $label_count ]
+    then
+        crypt_dev_error_exit "Device label '${CRYPT_DEV_LABEL}' must be only from: _,-,0-9,a-z,A-Z"
     fi
 }
 
@@ -179,7 +208,8 @@ crypt_dev_exec()
     crypt_dev_device_check
     crypt_dev_device_fs_check
     crypt_dev_level_check
-    crypt_dev_name_size_check
+    crypt_dev_label_size_check
+    crypt_dev_label_characters_check
     crypt_dev_define_os_bin
 
     ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}
@@ -301,11 +331,11 @@ linux_luks_create()
 # Create file system on device in mapper
 linux_luks_create_fs()
 {
-    local mkfs_create_options=" -L ${CRYPT_DEV_NAME}"
+    local mkfs_create_options=" -L ${CRYPT_DEV_LABEL}"
 
     if [ "$CRYPT_DEV_FS" = "fat32" -o "$CRYPT_DEV_FS" = "vfat" ]
     then
-        mkfs_create_options=" -F 32 -n ${CRYPT_DEV_NAME}"
+        mkfs_create_options=" -F 32 -n ${CRYPT_DEV_LABEL}"
     fi
 
     mkfs -t "$CRYPT_DEV_FS" $mkfs_create_options "$1"
