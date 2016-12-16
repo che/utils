@@ -37,7 +37,7 @@ By default environment variables:
     CRYPT_DEV=sdb2
     CRYPT_DEV_FS=ext4
     CRYPT_DEV_LEVEL=1
-    CRYPT_DEV_FS_NAME=crypt-dev
+    CRYPT_DEV_NAME=crypt-dev
 
 Capabilities:
 
@@ -77,7 +77,7 @@ Capabilities:
 
 Execute (Shell script):
 
-    crypt-dev [action] [device] [file system] [level] [file system name]
+    crypt-dev [action] [device] [file_system] [level] [device_name]
 
 License:
 
