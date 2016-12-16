@@ -56,15 +56,15 @@ Capabilities:
     |----------------|----------|----------|----------|
     |                |  create  |  mount   |  mount   |
     |     FreeBSD    |  mount   |  umount  |  umount  |
-    |                |  umount  |          |   (RO)   |
+    |                |  umount  |          |          |
     |----------------|----------|----------|----------|
     |                |  create  |  mount   |  mount   |
     |     OpenBSD    |  mount   |  umount  |  umount  |
     |                |  umount  |          |          |
     |----------------|----------|----------|----------|
-    |                |  create  |  create  |  create  |
-    |  DragonflyBSD  |  mount   |  mount   |  mount   |
-    |                |  umount  |  umount  |  umount  |
+    |                |  create  |  mount   |  mount   |
+    |  DragonflyBSD  |  mount   |  umount  |  umount  |
+    |                |  umount  |          |          |
     |----------------|----------|----------|----------|
     |                |  create  |  mount   |  mount   |
     |    Mac OS X    |  mount   |  umount  |  umount  |
