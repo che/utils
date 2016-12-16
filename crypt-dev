@@ -6,18 +6,25 @@ CRYPT_DEV_LIB_DIR="${CRYPT_DEV_DIR}crypt_dev/"
 CRYPT_DEV_ACTION_DEFAULT="mount"
 CRYPT_DEV_ACTION="${CRYPT_DEV_ACTION:=$1}"
 CRYPT_DEV_ACTION="${CRYPT_DEV_ACTION:=$CRYPT_DEV_ACTION_DEFAULT}"
+
 CRYPT_DEV_DEFAULT="sdb2"
 CRYPT_DEV="${CRYPT_DEV:=$2}"
 CRYPT_DEV="${CRYPT_DEV:=$CRYPT_DEV_DEFAULT}"
+
 CRYPT_DEV_FS_DEFAULT="ext4"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$3}"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$CRYPT_DEV_FS_DEFAULT}"
+
 CRYPT_DEV_LEVEL_DEFAULT=1
 CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$4}"
 CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$CRYPT_DEV_LEVEL_DEFAULT}"
-CRYPT_DEV_FS_NAME_DEFAULT="CRYPTDEV"
+CRYPT_DEV_LEVEL_MIN=$CRYPT_DEV_LEVEL_DEFAULT
+CRYPT_DEV_LEVEL_MAX=2
+
+CRYPT_DEV_FS_NAME_DEFAULT="crypt-dev"
 CRYPT_DEV_FS_NAME="${CRYPT_DEV_FS_NAME:=$5}"
 CRYPT_DEV_FS_NAME="${CRYPT_DEV_FS_NAME:=$CRYPT_DEV_FS_NAME_DEFAULT}"
+CRYPT_DEV_FS_NAME_SIZE=11
 
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
 CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
@@ -25,7 +32,8 @@ CRYPT_DEV_SYSTEM="/dev/${CRYPT_DEV}"
 CRYPT_DEV_MOUNT_DIR="/mnt/${CRYPT_DEV_NAME}"
 CRYPT_DEV_MAPPER="/dev/mapper/${CRYPT_DEV_NAME}"
 CRYPT_DEV_MAPPER_IN="/dev/mapper/${CRYPT_DEV_NAME_IN}"
-CRYPT_DEV_EXIT_STATUS=
+
+CRYPT_DEV_EXIT_STATUS=0
 CRYPT_DEV_BIN_FILE=""
 CRYPT_DEV_OS=""
 
@@ -103,18 +111,18 @@ crypt_dev_device_fs_check()
 # Creation level check
 crypt_dev_level_check()
 {
-    if [ $CRYPT_DEV_LEVEL -lt 1 -o $CRYPT_DEV_LEVEL -gt 2 ]
+    if [ $CRYPT_DEV_LEVEL -lt $CRYPT_DEV_LEVEL_MIN -o $CRYPT_DEV_LEVEL -gt $CRYPT_DEV_LEVEL_MAX ]
     then
-        crypt_dev_error_exit "Level '${CRYPT_DEV_LEVEL}' but must be 1 or 2"
+        crypt_dev_error_exit "Level '${CRYPT_DEV_LEVEL}' but must be ${CRYPT_DEV_LEVEL_MIN} or ${CRYPT_DEV_LEVEL_MAX}"
     fi
 }
 
 # File system name check
 crypt_dev_fs_name_check()
 {
-    if [ ${#CRYPT_DEV_FS_NAME} -gt 11 ]
+    if [ ${#CRYPT_DEV_FS_NAME} -gt $CRYPT_DEV_FS_NAME_SIZE ]
     then
-        crypt_dev_error_exit "FS name size '${CRYPT_DEV_FS_NAME}' must be less 11"
+        crypt_dev_error_exit "FS name size '${CRYPT_DEV_FS_NAME}' must be less ${CRYPT_DEV_FS_NAME_SIZE}"
     fi
 }
 
@@ -194,9 +202,9 @@ linux_luks_open()
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
-        crypt_dev_message "'${CRYPT_DEV_NAME}' has been opened"
+        crypt_dev_message "Device '${CRYPT_DEV_NAME}' has been opened"
     else
-        crypt_dev_error_exit "'${CRYPT_DEV_NAME}' has not been opened"
+        crypt_dev_error_exit "Device '${CRYPT_DEV_NAME}' has not been opened"
     fi
 }
 
@@ -207,9 +215,9 @@ linux_luks_open_in()
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
-        crypt_dev_message "'${CRYPT_DEV_NAME_IN}' has been opened"
+        crypt_dev_message "Device '${CRYPT_DEV_NAME_IN}' has been opened"
     else
-        crypt_dev_error_exit "'${CRYPT_DEV_NAME_IN}' has not been opened"
+        crypt_dev_error_exit "Device '${CRYPT_DEV_NAME_IN}' has not been opened"
     fi
 }
 
@@ -222,7 +230,7 @@ linux_luks_close_in()
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
-            crypt_dev_message "'${CRYPT_DEV_MAPPER_IN}' has been closed"
+            crypt_dev_message "Device '${CRYPT_DEV_MAPPER_IN}' has been closed"
 
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
             if [ "$CRYPT_DEV_ACTION" = "$CRYPT_DEV_ACTION_DEFAULT" ]
@@ -230,10 +238,10 @@ linux_luks_close_in()
                 exit 0
             fi
         else
-            crypt_dev_error_exit "'${CRYPT_DEV_MAPPER_IN}' has not been closed"
+            crypt_dev_error_exit "Device '${CRYPT_DEV_MAPPER_IN}' has not been closed"
         fi
     else
-        crypt_dev_warning "'${CRYPT_DEV_MAPPER_IN}' does not exist"
+        crypt_dev_warning "Device '${CRYPT_DEV_MAPPER_IN}' does not exist"
     fi
 }
 
@@ -246,15 +254,15 @@ linux_luks_close()
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
-            crypt_dev_message "'${CRYPT_DEV_MAPPER}' has been closed"
+            crypt_dev_message "Device '${CRYPT_DEV_MAPPER}' has been closed"
 
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
             exit 0
         else
-            crypt_dev_error_exit "'${CRYPT_DEV_MAPPER}' has not been closed"
+            crypt_dev_error_exit "Device '${CRYPT_DEV_MAPPER}' has not been closed"
         fi
     else
-        crypt_dev_warning "'${CRYPT_DEV_MAPPER}' does not exist"
+        crypt_dev_warning "Device '${CRYPT_DEV_MAPPER}' does not exist"
         exit 0
     fi
 }
@@ -296,6 +304,8 @@ linux_luks_create_fs()
     else
         crypt_dev_error_exit "FS '${CRYPT_DEV_FS}' has not been created on '${1}'"
     fi
+
+    # Sync
     sleep 2
 }
 
@@ -328,7 +338,7 @@ linux_mapper_mount()
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
-        crypt_dev_message "'${CRYPT_DEV_SYSTEM}' has been mounted to '${CRYPT_DEV_MOUNT_DIR}'"
+        crypt_dev_message "Device '${CRYPT_DEV_SYSTEM}' has been mounted to directory '${CRYPT_DEV_MOUNT_DIR}'"
     else
         crypt_dev_error "Something wrong"
 
@@ -359,10 +369,10 @@ linux_luks_mount()
             fi
             linux_mapper_mount "$crypt_dev_mapper"
         else
-            crypt_dev_error_exit "'${CRYPT_DEV_MOUNT_DIR}' already exists"
+            crypt_dev_error_exit "Directory '${CRYPT_DEV_MOUNT_DIR}' already exists"
         fi
     else
-        crypt_dev_error_exit "'${CRYPT_DEV_SYSTEM}' does not exist"
+        crypt_dev_error_exit "Device '${CRYPT_DEV_SYSTEM}' does not exist"
     fi
 }
 
@@ -391,7 +401,7 @@ linux_luks_mapper_umount()
     then
         umount -l "$CRYPT_DEV_MOUNT_DIR"
 
-        crypt_dev_warning "'${CRYPT_DEV_MOUNT_DIR}' has been unmounted lazily"
+        crypt_dev_warning "Directory '${CRYPT_DEV_MOUNT_DIR}' has been unmounted lazily"
     else
         crypt_dev_warning "Killing proccesses${crypt_dev_mapper_pids} for '$CRYPT_DEV_MOUNT_DIR'"
 
@@ -409,16 +419,16 @@ linux_luks_umount()
         CURRENT_EXIT_STATUS=$?
         if [ $CURRENT_EXIT_STATUS -eq 0 ]
         then
-            crypt_dev_message "'${CRYPT_DEV_SYSTEM}' has been unmounted from '${CRYPT_DEV_MOUNT_DIR}'"
+            crypt_dev_message "Device '${CRYPT_DEV_SYSTEM}' has been unmounted from directory '${CRYPT_DEV_MOUNT_DIR}'"
 
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
         else
-            crypt_dev_error "'${CRYPT_DEV_SYSTEM}' has not been unmounted correctly from '${CRYPT_DEV_MOUNT_DIR}'"
+            crypt_dev_error "Device '${CRYPT_DEV_SYSTEM}' has not been unmounted correctly from directory '${CRYPT_DEV_MOUNT_DIR}'"
 
             linux_luks_mapper_umount
         fi
     else
-        crypt_dev_warning "'${CRYPT_DEV_MOUNT_DIR}' does not exist"
+        crypt_dev_warning "Directory '${CRYPT_DEV_MOUNT_DIR}' does not exist"
     fi
 }
 
