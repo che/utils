@@ -109,6 +109,16 @@ crypt_dev_level_check()
     fi
 }
 
+# File system name check
+crypt_dev_fs_name_check()
+{
+    if [ ${#CRYPT_DEV_FS_NAME} -gt 11 ]
+    then
+        crypt_dev_error_exit "FS name size '${CRYPT_DEV_FS_NAME}' must be less 16"
+    fi
+}
+
+
 # Define current OS bin file
 crypt_dev_define_os_bin()
 {
@@ -150,6 +160,7 @@ crypt_dev_exec()
     crypt_dev_device_check
     crypt_dev_device_fs_check
     crypt_dev_level_check
+    crypt_dev_fs_name_check
     crypt_dev_define_os_bin
 
     ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}

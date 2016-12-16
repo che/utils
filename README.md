@@ -36,7 +36,7 @@ By default environment variables:
     CRYPT_DEV=sdb2
     CRYPT_DEV_FS=ext4
     CRYPT_DEV_LEVEL=1
-    CRYPT_DEV_FS_NAME=CRYPTDEV
+    CRYPT_DEV_FS_NAME=crypt-dev
 
 Capabilities:
 
