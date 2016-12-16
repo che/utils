@@ -1,7 +1,13 @@
 #!/bin/sh
+#
+# Code is available online at https://github.com/crypt-dev/
+# See LICENSE for licensing information, and README for details.
+#
+# Author: Pavel V. Chebotarev
+#
+# Copyright (C) 2016 Pavel V. Chebotarev, Magenete Systems OÜ.
+#
 
-CRYPT_DEV_DIR="${CRYPT_DEV_DIR:=$(cd "$(dirname "$0")" && pwd -P)}/"
-CRYPT_DEV_LIB_DIR="${CRYPT_DEV_DIR}crypt_dev/"
 
 CRYPT_DEV_ACTION_DEFAULT="mount"
 CRYPT_DEV_ACTION="${CRYPT_DEV_ACTION:=$1}"
@@ -25,7 +31,7 @@ CRYPT_DEV_LABEL_DEFAULT="crypt-dev"
 CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$5}"
 CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$CRYPT_DEV_LABEL_DEFAULT}"
 CRYPT_DEV_LABEL_SIZE=16
-CRYPT_DEV_FAT_LABEL_SIZE=11
+CRYPT_DEV_LABEL_FAT_SIZE=11
 CRYPT_DEV_LABEL_CHARACTERS_ARRAY="_ - 1 2 3 4 5 6 7 8 9 0 a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
 
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
@@ -126,7 +132,7 @@ crypt_dev_label_size_check()
 
     if [ "$CRYPT_DEV_FS" = "fat32" -o "$CRYPT_DEV_FS" = "vfat" ]
     then
-        device_label_size=$CRYPT_DEV_FAT_NAME_SIZE
+        device_label_size=$CRYPT_DEV_LABEL_FAT_SIZE
     fi
 
     if [ ${#CRYPT_DEV_LABEL} -gt $device_label_size ]
