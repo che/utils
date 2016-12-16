@@ -24,7 +24,8 @@ CRYPT_DEV_LEVEL_MAX=2
 CRYPT_DEV_FS_NAME_DEFAULT="crypt-dev"
 CRYPT_DEV_FS_NAME="${CRYPT_DEV_FS_NAME:=$5}"
 CRYPT_DEV_FS_NAME="${CRYPT_DEV_FS_NAME:=$CRYPT_DEV_FS_NAME_DEFAULT}"
-CRYPT_DEV_FS_NAME_SIZE=11
+CRYPT_DEV_FS_NAME_SIZE=16
+CRYPT_DEV_FS_FAT_NAME_SIZE=11
 
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
 CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
@@ -117,12 +118,19 @@ crypt_dev_level_check()
     fi
 }
 
-# File system name check
-crypt_dev_fs_name_check()
+# Device file system name size check
+crypt_dev_fs_name_size_check()
 {
-    if [ ${#CRYPT_DEV_FS_NAME} -gt $CRYPT_DEV_FS_NAME_SIZE ]
+    local device_fs_name_size=$CRYPT_DEV_FS_NAME_SIZE
+
+    if [ "$CRYPT_DEV_FS" = "fat32" -o "$CRYPT_DEV_FS" = "vfat" ]
     then
-        crypt_dev_error_exit "FS name size '${CRYPT_DEV_FS_NAME}' must be less ${CRYPT_DEV_FS_NAME_SIZE}"
+        device_fs_name_size=$CRYPT_DEV_FS_FAT_NAME_SIZE
+    fi
+
+    if [ ${#CRYPT_DEV_FS_NAME} -gt $device_fs_name_size ]
+    then
+        crypt_dev_error_exit "Device FS name size '${CRYPT_DEV_FS_NAME}' must be less ${device_fs_name_size}"
     fi
 }
 
@@ -171,7 +179,7 @@ crypt_dev_exec()
     crypt_dev_device_check
     crypt_dev_device_fs_check
     crypt_dev_level_check
-    crypt_dev_fs_name_check
+    crypt_dev_fs_name_size_check
     crypt_dev_define_os_bin
 
     ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}
@@ -295,7 +303,7 @@ linux_luks_create_fs()
 {
     local mkfs_create_options=" -L ${CRYPT_DEV_FS_NAME}"
 
-    if [ "$CRYPT_DEV_FS_NAME" = "fat32" -o "$CRYPT_DEV_FS_NAME" = "vfat" ]
+    if [ "$CRYPT_DEV_FS" = "fat32" -o "$CRYPT_DEV_FS" = "vfat" ]
     then
         mkfs_create_options=" -F 32 -n ${CRYPT_DEV_FS_NAME}"
     fi
