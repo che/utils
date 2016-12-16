@@ -27,6 +27,7 @@ Create, mount, umount device for:
     NetBSD (CGD)
     FreeBSD (GELI)
     OpenBSD (SVND)
+    DragonflyBSD (LUKS)
     Mac OS X (FileVault2)
     QNX (FSCrypto)
 
