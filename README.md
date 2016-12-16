@@ -40,37 +40,41 @@ By default environment variables:
 
 Capabilities:
 
-    ------------------------------------------------
-    |  Operation  |          File system           |
-    |   system    |:------------------------------:-
-    |             |  fat32   |   vfat   |   ext4   |
-    -:-----------:-:--------:-:--------:-:--------:-
-    |             |  create  |  create  |  create  |
-    |  GNU/Linux  |  mount   |  mount   |  mount   |
-    |             |  umount  |  umount  |  umount  |
-    ------------------------------------------------
-    |             |  create  |  mount   |  mount   |
-    |   NetBSD    |  mount   |  umount  |  umount  |
-    |             |  umount  |          |          |
-    ------------------------------------------------
-    |             |  create  |  mount   |  mount   |
-    |   FreeBSD   |  mount   |  umount  |  umount  |
-    |             |  umount  |          |   (RO)   |
-    ------------------------------------------------
-    |             |  create  |  mount   |  mount   |
-    |   OpenBSD   |  mount   |  umount  |  umount  |
-    |             |  umount  |          |          |
-    ------------------------------------------------
-    |             |  create  |  mount   |  mount   |
-    |  Mac OS X   |  mount   |  umount  |  umount  |
-    |             |  umount  |          |          |
-    ------------------------------------------------
-    |             |  create  |  mount   |          |
-    |     QNX     |  mount   |  umount  |     x    |
-    |             |  umount  |          |          |
-    ------------------------------------------------
+    ---------------------------------------------------
+    |    Operation   |          File system           |
+    |     system     |:------------------------------:|
+    |                |  fat32   |   vfat   |   ext4   |
+    |:--------------:|:--------:|:--------:|:--------:|
+    |                |  create  |  create  |  create  |
+    |   GNU/Linux    |  mount   |  mount   |  mount   |
+    |                |  umount  |  umount  |  umount  |
+    |----------------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |
+    |     NetBSD     |  mount   |  umount  |  umount  |
+    |                |  umount  |          |          |
+    |----------------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |
+    |     FreeBSD    |  mount   |  umount  |  umount  |
+    |                |  umount  |          |   (RO)   |
+    |----------------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |
+    |     OpenBSD    |  mount   |  umount  |  umount  |
+    |                |  umount  |          |          |
+    |----------------|----------|----------|----------|
+    |                |  create  |  create  |  create  |
+    |  DragonflyBSD  |  mount   |  mount   |  mount   |
+    |                |  umount  |  umount  |  umount  |
+    |----------------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |
+    |    Mac OS X    |  mount   |  umount  |  umount  |
+    |                |  umount  |          |          |
+    |----------------|----------|----------|----------|
+    |                |  create  |  mount   |          |
+    |      QNX       |  mount   |  umount  |    x     |
+    |                |  umount  |          |          |
+    ---------------------------------------------------
 
-Execute (shell script):
+Execute (Shell script):
 
     crypt-dev [action] [device] [file system] [level] [file system name]
 
