@@ -190,7 +190,7 @@ linux_luks_is()
 # Open LUKS device
 linux_luks_open()
 {
-    "$CRYPT_DEV_BIN_FILE" open "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
+    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -203,7 +203,7 @@ linux_luks_open()
 # Open LUKS device in mapper
 linux_luks_open_in()
 {
-    "$CRYPT_DEV_BIN_FILE" open "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
+    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -218,7 +218,7 @@ linux_luks_close_in()
 {
     if [ -e "$CRYPT_DEV_MAPPER_IN" ]
     then
-        "$CRYPT_DEV_BIN_FILE" close "$CRYPT_DEV_MAPPER_IN"
+        "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER_IN"
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
@@ -242,7 +242,7 @@ linux_luks_close()
 {
     if [ -e "$CRYPT_DEV_MAPPER" ]
     then
-        "$CRYPT_DEV_BIN_FILE" close "$CRYPT_DEV_MAPPER"
+        "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER"
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
