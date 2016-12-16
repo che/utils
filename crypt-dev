@@ -34,6 +34,10 @@ CRYPT_DEV_LABEL_SIZE=16
 CRYPT_DEV_LABEL_FAT_SIZE=11
 CRYPT_DEV_LABEL_CHARACTERS_ARRAY="_ - 1 2 3 4 5 6 7 8 9 0 a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
 
+CRYPT_DEV_KEY_FILE_DEFAULT=""
+CRYPT_DEV_KEY_FILE="${CRYPT_DEV_KEY_FILE:=$6}"
+CRYPT_DEV_KEY_FILE="${CRYPT_DEV_KEY_FILE:=$CRYPT_DEV_KEY_FILE_DEFAULT}"
+
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
 CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
 CRYPT_DEV_SYSTEM="/dev/${CRYPT_DEV}"
@@ -43,6 +47,7 @@ CRYPT_DEV_MAPPER_IN="/dev/mapper/${CRYPT_DEV_NAME_IN}"
 
 CRYPT_DEV_EXIT_STATUS=0
 CRYPT_DEV_BIN_FILE=""
+CRYPT_DEV_OPTIONS=""
 CRYPT_DEV_OS=""
 
 
@@ -169,8 +174,8 @@ crypt_dev_label_characters_check()
     fi
 }
 
-# Define current OS bin file
-crypt_dev_define_os_bin()
+# Current OS bin file define
+crypt_dev_os_bin_define()
 {
     case "$(uname -s)" in
         Linux )
@@ -207,6 +212,22 @@ crypt_dev_define_os_bin()
     esac
 }
 
+# Option define
+crypt_dev_optin_define()
+{
+    if [ ! -z "$CRYPT_DEV_KEY_FILE" ]
+    then
+        if [ ! -e "$CRYPT_DEV_KEY_FILE" ]
+        then
+            crypt_dev_error_exit "File '${CRYPT_DEV_KEY_FILE}' does not exist"
+        fi
+        if [ ! -f "$CRYPT_DEV_KEY_FILE" ]
+        then
+            crypt_dev_error_exit "'${CRYPT_DEV_KEY_FILE}' is not file"
+        fi
+    fi
+}
+
 # Execute
 crypt_dev_exec()
 {
@@ -216,7 +237,8 @@ crypt_dev_exec()
     crypt_dev_level_check
     crypt_dev_label_size_check
     crypt_dev_label_characters_check
-    crypt_dev_define_os_bin
+    crypt_dev_os_bin_define
+    crypt_dev_optin_define
 
     ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}
 }
@@ -227,7 +249,7 @@ crypt_dev_exec()
 ################        GNU/Linux -- LUKS (cryptsetup)
 
 
-# Check installation cryptsetup
+# cryptsetup installation check
 linux_cryptsetup_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -236,17 +258,28 @@ linux_cryptsetup_check()
     fi
 }
 
-# Check LUKS device
+# LUKS options define
+linux_luks_options_define()
+{
+    if [ -z "$CRYPT_DEV_KEY_FILE" ]
+    then
+        CRYPT_DEV_OPTIONS="--verify-passphrase --timeout 300"
+    else
+        CRYPT_DEV_OPTIONS="--key-file ${CRYPT_DEV_KEY_FILE}"
+    fi
+}
+
+# LUKS device check
 linux_luks_is()
 {
-    "$CRYPT_DEV_BIN_FILE" isLuks "$1" 2> /dev/null
+    $CRYPT_DEV_BIN_FILE isLuks "$1" 2> /dev/null
     echo "$?"
 }
 
-# Open LUKS device
+# LUKS device open
 linux_luks_open()
 {
-    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_SYSTEM" "$CRYPT_DEV_NAME"
+    $CRYPT_DEV_BIN_FILE luksOpen $CRYPT_DEV_OPTIONS $CRYPT_DEV_SYSTEM $CRYPT_DEV_NAME
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -256,10 +289,10 @@ linux_luks_open()
     fi
 }
 
-# Open LUKS device in mapper
+# LUKS device in mapper open
 linux_luks_open_in()
 {
-    "$CRYPT_DEV_BIN_FILE" luksOpen "$CRYPT_DEV_MAPPER" "$CRYPT_DEV_NAME_IN"
+    $CRYPT_DEV_BIN_FILE luksOpen $CRYPT_DEV_OPTIONS $CRYPT_DEV_MAPPER $CRYPT_DEV_NAME_IN
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -269,12 +302,12 @@ linux_luks_open_in()
     fi
 }
 
-# Close LUKS device in mapper
+# LUKS device in mapper close
 linux_luks_close_in()
 {
     if [ -e "$CRYPT_DEV_MAPPER_IN" ]
     then
-        "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER_IN"
+        $CRYPT_DEV_BIN_FILE luksClose $CRYPT_DEV_MAPPER_IN
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
@@ -293,12 +326,12 @@ linux_luks_close_in()
     fi
 }
 
-# Close LUKS device
+# LUKS device close
 linux_luks_close()
 {
     if [ -e "$CRYPT_DEV_MAPPER" ]
     then
-        "$CRYPT_DEV_BIN_FILE" luksClose "$CRYPT_DEV_MAPPER"
+        $CRYPT_DEV_BIN_FILE luksClose $CRYPT_DEV_MAPPER
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
@@ -319,12 +352,12 @@ linux_luks_close()
 ########    GNU/Linux -- LUKS -- Create
 
 
-# Create LUKS device in mapper
+# LUKS device in mapper create
 linux_luks_create()
 {
-    local luks_create_options="--verify-passphrase --type luks --cipher aes-xts-essiv:sha256 --key-size 512 --hash sha512"
+    local luks_create_options="--type luks --cipher aes-xts-essiv:sha256 --key-size 512 --hash sha512"
 
-    "$CRYPT_DEV_BIN_FILE" luksFormat "$1" $luks_create_options
+    $CRYPT_DEV_BIN_FILE luksFormat $1 $CRYPT_DEV_OPTIONS $luks_create_options
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -334,7 +367,7 @@ linux_luks_create()
     fi
 }
 
-# Create file system on device in mapper
+# File system on device in mapper create
 linux_luks_create_fs()
 {
     local mkfs_create_options=" -L ${CRYPT_DEV_LABEL}"
@@ -344,7 +377,7 @@ linux_luks_create_fs()
         mkfs_create_options=" -F 32 -n ${CRYPT_DEV_LABEL}"
     fi
 
-    mkfs -t "$CRYPT_DEV_FS" $mkfs_create_options "$1"
+    mkfs -t $CRYPT_DEV_FS $mkfs_create_options $1
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -357,10 +390,11 @@ linux_luks_create_fs()
     sleep 2
 }
 
-# Create device
+# Device create
 linux_create()
 {
     linux_cryptsetup_check
+    linux_luks_options_define
     linux_luks_create "$CRYPT_DEV_SYSTEM"
     linux_luks_open
     if [ $CRYPT_DEV_LEVEL -eq $CRYPT_DEV_LEVEL_MIN ]
@@ -379,10 +413,10 @@ linux_create()
 ########    GNU/Linux -- LUKS -- Mount
 
 
-# Mount LUKS device
+# LUKS device mount
 linux_mapper_mount()
 {
-    mkdir -p "$CRYPT_DEV_MOUNT_DIR" && mount "$1" "$CRYPT_DEV_MOUNT_DIR"
+    mkdir -p "$CRYPT_DEV_MOUNT_DIR" && mount $1 "$CRYPT_DEV_MOUNT_DIR"
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -400,7 +434,7 @@ linux_mapper_mount()
     exit $CRYPT_DEV_EXIT_STATUS
 }
 
-# Mount LUKS device in mapper
+# LUKS device in mapper mount
 linux_luks_mount()
 {
     local crypt_dev_mapper="$CRYPT_DEV_MAPPER"
@@ -424,10 +458,11 @@ linux_luks_mount()
     fi
 }
 
-# Mount device
+# Device mount
 linux_mount()
 {
     linux_cryptsetup_check
+    linux_luks_options_define
     linux_luks_mount
 }
 
@@ -435,7 +470,7 @@ linux_mount()
 ########    GNU/Linux -- LUKS -- Umount
 
 
-# Force umount LUKS device
+# LUKS device umount (force)
 linux_luks_mapper_umount()
 {
     local crypt_dev_mapper_pids=""
@@ -458,7 +493,7 @@ linux_luks_mapper_umount()
     fi
 }
 
-# Umount LUKS device in mapper
+# LUKS device in mapper umount
 linux_luks_umount()
 {
     if [ -e "$CRYPT_DEV_MOUNT_DIR" ]
@@ -480,7 +515,7 @@ linux_luks_umount()
     fi
 }
 
-# Umount device
+# Device umount
 linux_umount()
 {
     linux_cryptsetup_check
@@ -498,7 +533,7 @@ linux_umount()
 ################        NetBSD -- CGD (cgd)
 
 
-# Check installation cgd
+# cgd installation check
 netbsd_cgd_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -511,7 +546,7 @@ netbsd_cgd_check()
 ########    NetBSD -- CGD -- Create
 
 
-# Create device
+# Device create
 netbsd_create()
 {
     netbsd_cgd_check
@@ -521,7 +556,7 @@ netbsd_create()
 ########    NetBSD -- CGD -- Mount
 
 
-# Mount device
+# Device mount
 netbsd_mount()
 {
     netbsd_cgd_check
@@ -531,7 +566,7 @@ netbsd_mount()
 ########    NetBSD -- CGD -- Umount
 
 
-# Umount device
+# Device umount
 netbsd_umount()
 {
     netbsd_cgd_check
@@ -543,7 +578,7 @@ netbsd_umount()
 ################        FreeBSD -- GELI (geli)
 
 
-# Check installation geli
+# geli installation check
 freebsd_geli_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -556,7 +591,7 @@ freebsd_geli_check()
 ########    FreeBSD -- GELI -- Create
 
 
-# Create device
+# Device create
 freebsd_create()
 {
     freebsd_geli_check
@@ -566,7 +601,7 @@ freebsd_create()
 ########    FreeBSD -- GELI -- Mount
 
 
-# Mount device
+# Device mount
 freebsd_mount()
 {
     freebsd_geli_check
@@ -576,7 +611,7 @@ freebsd_mount()
 ########    FreeBSD -- GELI -- Umount
 
 
-# Umount device
+# Device umount
 freebsd_umount()
 {
     freebsd_geli_check
@@ -588,7 +623,7 @@ freebsd_umount()
 ################        OpenBSD -- SVND (bioctl)
 
 
-# Check installation softraid and bioctl
+# softraid and bioctl installation check
 openbsd_bioctl_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -601,7 +636,7 @@ openbsd_bioctl_check()
 ########    OpenBSD -- SVND -- Create
 
 
-# Create device
+# Device create
 openbsd_create()
 {
     openbsd_bioctl_check
@@ -611,7 +646,7 @@ openbsd_create()
 ########    OpenBSD -- SVND -- Mount
 
 
-# Mount device
+# Device mount
 openbsd_mount()
 {
     openbsd_bioctl_check
@@ -621,7 +656,7 @@ openbsd_mount()
 ########    OpenBSD -- SVND -- Umount
 
 
-# Umount device
+# Device umount
 openbsd_umount()
 {
     openbsd_bioctl_check
@@ -633,7 +668,7 @@ openbsd_umount()
 ################        DragonflyBSD -- LUKS (cryptsetup)
 
 
-# Check installation cryptsetup
+# cryptsetup installation check
 dragonflybsd_cryptsetup_check()
 {
     linux_cryptsetup_check
@@ -643,7 +678,7 @@ dragonflybsd_cryptsetup_check()
 ########    DragonflyBSD -- LUKS -- Create
 
 
-# Create device
+# Device create
 dragonflybsd_create()
 {
     dragonflybsd_cryptsetup_check
@@ -653,7 +688,7 @@ dragonflybsd_create()
 ########    DragonflyBSD -- LUKS -- Mount
 
 
-# Mount device
+# Device mount
 dragonflybsd_mount()
 {
     dragonflybsd_cryptsetup_check
@@ -663,7 +698,7 @@ dragonflybsd_mount()
 ########    DragonflyBSD -- LUKS -- Umount
 
 
-# Umount device
+# Dvice umount
 dragonflybsd_umount()
 {
     dragonflybsd_cryptsetup_check
@@ -675,7 +710,7 @@ dragonflybsd_umount()
 ################        Mac OS X -- FileVault2 (hdiutil)
 
 
-# Check installation hdiutil
+# hdiutil installation check
 macosx_hdiutil_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -688,7 +723,7 @@ macosx_hdiutil_check()
 ########    Mac OS X -- FileVault2 -- Create
 
 
-# Create device
+# Device create
 macosx_create()
 {
     macosx_hdiutil_check
@@ -698,7 +733,7 @@ macosx_create()
 ########    Mac OS X -- FileVault2 -- Mount
 
 
-# Mount device
+# Device mount
 macosx_mount()
 {
     macosx_hdiutil_check
@@ -708,7 +743,7 @@ macosx_mount()
 ########    Mac OS X -- FileVault2 -- Umount
 
 
-# Umount device
+# Device umount
 macosx_umount()
 {
     macosx_hdiutil_check
@@ -720,7 +755,7 @@ macosx_umount()
 ################        QNX -- FSCrypto (fscrypto)
 
 
-# Check installation fscrypto
+# fscrypto installation check
 qnx_fscrypto_check()
 {
     if [ -z "$CRYPT_DEV_BIN_FILE" ]
@@ -733,7 +768,7 @@ qnx_fscrypto_check()
 ########    QNX -- FSCrypto -- Create
 
 
-# Create device
+# Device create
 qnx_create()
 {
     qnx_fscrypto_check
@@ -743,7 +778,7 @@ qnx_create()
 ########    QNX -- FSCrypto -- Mount
 
 
-# Mount device
+# Device mount
 qnx_mount()
 {
     qnx_fscrypto_check
@@ -753,7 +788,7 @@ qnx_mount()
 ########    QNX -- FSCrypto -- Umount
 
 
-# Umount device
+# Device umount
 qnx_umount()
 {
     qnx_fscrypto_check
