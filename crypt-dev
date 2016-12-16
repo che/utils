@@ -3,9 +3,9 @@
 # Code is available online at https://github.com/crypt-dev/
 # See LICENSE for licensing information, and README for details.
 #
-# Author: Pavel V. Chebotarev
+# Author: Pavel Chebotarev
 #
-# Copyright (C) 2016 Pavel V. Chebotarev, Magenete Systems OÜ.
+# Copyright (C) 2016 Pavel Chebotarev, Magenete Systems OÜ.
 #
 
 
@@ -113,7 +113,7 @@ crypt_dev_device_check()
 crypt_dev_device_fs_check()
 {
     case "$CRYPT_DEV_FS" in
-        fat32 | vfat | ext4 )
+        fat32 | vfat | ext4 | ntfs )
         ;;
         * )
             crypt_dev_error_exit "Device FS '${CRYPT_DEV_FS}' is not supported"
@@ -263,7 +263,7 @@ linux_luks_options_define()
 {
     if [ -z "$CRYPT_DEV_KEY_FILE" ]
     then
-        CRYPT_DEV_OPTIONS="--verify-passphrase --timeout 300"
+        CRYPT_DEV_OPTIONS="--timeout 300"
     else
         CRYPT_DEV_OPTIONS="--key-file ${CRYPT_DEV_KEY_FILE}"
     fi
@@ -272,14 +272,14 @@ linux_luks_options_define()
 # LUKS device check
 linux_luks_is()
 {
-    $CRYPT_DEV_BIN_FILE isLuks "$1" 2> /dev/null
+    $CRYPT_DEV_BIN_FILE isLuks $1 2> /dev/null
     echo "$?"
 }
 
 # LUKS device open
 linux_luks_open()
 {
-    $CRYPT_DEV_BIN_FILE luksOpen $CRYPT_DEV_OPTIONS $CRYPT_DEV_SYSTEM $CRYPT_DEV_NAME
+    $CRYPT_DEV_BIN_FILE open $CRYPT_DEV_OPTIONS $CRYPT_DEV_SYSTEM $CRYPT_DEV_NAME
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -292,7 +292,7 @@ linux_luks_open()
 # LUKS device in mapper open
 linux_luks_open_in()
 {
-    $CRYPT_DEV_BIN_FILE luksOpen $CRYPT_DEV_OPTIONS $CRYPT_DEV_MAPPER $CRYPT_DEV_NAME_IN
+    $CRYPT_DEV_BIN_FILE open $CRYPT_DEV_OPTIONS $CRYPT_DEV_MAPPER $CRYPT_DEV_NAME_IN
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -307,7 +307,7 @@ linux_luks_close_in()
 {
     if [ -e "$CRYPT_DEV_MAPPER_IN" ]
     then
-        $CRYPT_DEV_BIN_FILE luksClose $CRYPT_DEV_MAPPER_IN
+        $CRYPT_DEV_BIN_FILE close $CRYPT_DEV_MAPPER_IN
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
@@ -331,7 +331,7 @@ linux_luks_close()
 {
     if [ -e "$CRYPT_DEV_MAPPER" ]
     then
-        $CRYPT_DEV_BIN_FILE luksClose $CRYPT_DEV_MAPPER
+        $CRYPT_DEV_BIN_FILE close $CRYPT_DEV_MAPPER
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
@@ -357,6 +357,11 @@ linux_luks_create()
 {
     local luks_create_options="--type luks --cipher aes-xts-essiv:sha256 --key-size 512 --hash sha512"
 
+    if [ -z "$CRYPT_DEV_KEY_FILE" ]
+    then
+        luks_create_options="--verify-passphrase ${luks_create_options}"
+    fi
+
     $CRYPT_DEV_BIN_FILE luksFormat $1 $CRYPT_DEV_OPTIONS $luks_create_options
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
@@ -371,13 +376,18 @@ linux_luks_create()
 linux_luks_create_fs()
 {
     local mkfs_create_options=" -L ${CRYPT_DEV_LABEL}"
+    local mkfs_type="$CRYPT_DEV_FS"
 
     if [ "$CRYPT_DEV_FS" = "fat32" -o "$CRYPT_DEV_FS" = "vfat" ]
     then
         mkfs_create_options=" -F 32 -n ${CRYPT_DEV_LABEL}"
     fi
+    if [ "$CRYPT_DEV_FS" = "fat32" ]
+    then
+        mkfs_type="fat"
+    fi
 
-    mkfs -t $CRYPT_DEV_FS $mkfs_create_options $1
+    mkfs.$mkfs_type $mkfs_create_options $1
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -387,7 +397,7 @@ linux_luks_create_fs()
     fi
 
     # Sync
-    sleep 2
+    sleep 4
 }
 
 # Device create

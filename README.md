@@ -42,39 +42,39 @@ By default environment variables:
 
 Capabilities:
 
-    ---------------------------------------------------
-    |    Operation   |          File system           |
-    |     system     |:------------------------------:|
-    |                |  fat32   |   vfat   |   ext4   |
-    |:--------------:|:--------:|:--------:|:--------:|
-    |                |  create  |  create  |  create  |
-    |   GNU/Linux    |  mount   |  mount   |  mount   |
-    |                |  umount  |  umount  |  umount  |
-    |----------------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |
-    |     NetBSD     |  mount   |  umount  |  umount  |
-    |                |  umount  |          |          |
-    |----------------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |
-    |     FreeBSD    |  mount   |  umount  |  umount  |
-    |                |  umount  |          |          |
-    |----------------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |
-    |     OpenBSD    |  mount   |  umount  |  umount  |
-    |                |  umount  |          |          |
-    |----------------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |
-    |  DragonflyBSD  |  mount   |  umount  |  umount  |
-    |                |  umount  |          |          |
-    |----------------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |
-    |    Mac OS X    |  mount   |  umount  |  umount  |
-    |                |  umount  |          |          |
-    |----------------|----------|----------|----------|
-    |                |  create  |  mount   |          |
-    |      QNX       |  mount   |  umount  |    x     |
-    |                |  umount  |          |          |
-    ---------------------------------------------------
+    --------------------------------------------------------------
+    |    Operation   |                File system                |
+    |     system     |:-----------------------------------------:|
+    |                |  fat32   |   vfat   |   ntfs   |   ext4   |
+    |:--------------:|:--------:|:--------:|:--------:|:--------:|
+    |                |  create  |  create  |  create  |  create  |
+    |   GNU/Linux    |  mount   |  mount   |  mount   |  mount   |
+    |                |  umount  |  umount  |  umount  |  umount  |
+    |----------------|----------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |  mount   |
+    |     NetBSD     |  mount   |  umount  |  umount  |  umount  |
+    |                |  umount  |          |          |          |
+    |----------------|----------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |  mount   |
+    |     FreeBSD    |  mount   |  umount  |  umount  |  umount  |
+    |                |  umount  |          |          |          |
+    |----------------|----------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |  mount   |
+    |     OpenBSD    |  mount   |  umount  |  umount  |  umount  |
+    |                |  umount  |          |          |          |
+    |----------------|----------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |  mount   |
+    |  DragonflyBSD  |  mount   |  umount  |  umount  |  umount  |
+    |                |  umount  |          |          |          |
+    |----------------|----------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |  mount   |
+    |    Mac OS X    |  mount   |  umount  |  umount  |  umount  |
+    |                |  umount  |          |          |          |
+    |----------------|----------|----------|----------|----------|
+    |                |  create  |  mount   |  mount   |          |
+    |      QNX       |  mount   |  umount  |  umount  |    x     |
+    |                |  umount  |          |          |          |
+    --------------------------------------------------------------
 
 Execute (Shell script):
 
@@ -82,4 +82,4 @@ Execute (Shell script):
 
 License:
 
-    MIT
+    BSD
