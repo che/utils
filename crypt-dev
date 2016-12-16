@@ -146,6 +146,10 @@ crypt_dev_define_os_bin()
             CRYPT_DEV_OS="openbsd"
             CRYPT_DEV_BIN_FILE="$(which bioctl)"
         ;;
+        DragonflyBSD )
+            CRYPT_DEV_OS="dragonflybsd"
+            CRYPT_DEV_BIN_FILE="$(which cryptsetup)"
+        ;;
         Darwin )
             CRYPT_DEV_OS="macosx"
             CRYPT_DEV_BIN_FILE="$(which hdiutil)"
@@ -315,7 +319,7 @@ linux_create()
     linux_cryptsetup_check
     linux_luks_create "$CRYPT_DEV_SYSTEM"
     linux_luks_open
-    if [ $CRYPT_DEV_LEVEL -eq 1 ]
+    if [ $CRYPT_DEV_LEVEL -eq $CRYPT_DEV_LEVEL_MIN ]
     then
         linux_luks_create_fs "$CRYPT_DEV_MAPPER"
     else
@@ -577,6 +581,48 @@ openbsd_mount()
 openbsd_umount()
 {
     openbsd_bioctl_check
+}
+
+
+
+
+################        DragonflyBSD -- LUKS (cryptsetup)
+
+
+# Check installation cryptsetup
+dragonflybsd_cryptsetup_check()
+{
+    linux_cryptsetup_check
+}
+
+
+########    DragonflyBSD -- LUKS -- Create
+
+
+# Create device
+dragonflybsd_create()
+{
+    dragonflybsd_cryptsetup_check
+}
+
+
+########    DragonflyBSD -- LUKS -- Mount
+
+
+# Mount device
+dragonflybsd_mount()
+{
+    dragonflybsd_cryptsetup_check
+}
+
+
+########    DragonflyBSD -- LUKS -- Umount
+
+
+# Umount device
+dragonflybsd_umount()
+{
+    dragonflybsd_cryptsetup_check
 }
 
 
