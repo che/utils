@@ -21,18 +21,18 @@ CRYPT_DEV_FS_DEFAULT="ext4"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$3}"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$CRYPT_DEV_FS_DEFAULT}"
 
-CRYPT_DEV_LEVEL_DEFAULT=1
-CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$4}"
-CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$CRYPT_DEV_LEVEL_DEFAULT}"
-CRYPT_DEV_LEVEL_MIN=$CRYPT_DEV_LEVEL_DEFAULT
-CRYPT_DEV_LEVEL_MAX=2
-
 CRYPT_DEV_LABEL_DEFAULT="crypt-dev"
 CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$5}"
 CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$CRYPT_DEV_LABEL_DEFAULT}"
 CRYPT_DEV_LABEL_SIZE=16
 CRYPT_DEV_LABEL_FAT_SIZE=11
 CRYPT_DEV_LABEL_CHARACTERS_ARRAY="_ - 1 2 3 4 5 6 7 8 9 0 a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+
+CRYPT_DEV_LEVEL_DEFAULT=1
+CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$5}"
+CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$CRYPT_DEV_LEVEL_DEFAULT}"
+CRYPT_DEV_LEVEL_MIN=$CRYPT_DEV_LEVEL_DEFAULT
+CRYPT_DEV_LEVEL_MAX=2
 
 CRYPT_DEV_KEY_FILE_DEFAULT=""
 CRYPT_DEV_KEY_FILE="${CRYPT_DEV_KEY_FILE:=$6}"
@@ -121,15 +121,6 @@ crypt_dev_device_fs_check()
     esac
 }
 
-# Creation level check
-crypt_dev_level_check()
-{
-    if [ $CRYPT_DEV_LEVEL -lt $CRYPT_DEV_LEVEL_MIN -o $CRYPT_DEV_LEVEL -gt $CRYPT_DEV_LEVEL_MAX ]
-    then
-        crypt_dev_error_exit "Level '${CRYPT_DEV_LEVEL}' but must be ${CRYPT_DEV_LEVEL_MIN} or ${CRYPT_DEV_LEVEL_MAX}"
-    fi
-}
-
 # Device label size check
 crypt_dev_label_size_check()
 {
@@ -174,6 +165,15 @@ crypt_dev_label_characters_check()
     fi
 }
 
+# Creation level check
+crypt_dev_level_check()
+{
+    if [ $CRYPT_DEV_LEVEL -lt $CRYPT_DEV_LEVEL_MIN -o $CRYPT_DEV_LEVEL -gt $CRYPT_DEV_LEVEL_MAX ]
+    then
+        crypt_dev_error_exit "Level '${CRYPT_DEV_LEVEL}' but must be ${CRYPT_DEV_LEVEL_MIN} or ${CRYPT_DEV_LEVEL_MAX}"
+    fi
+}
+
 # Current OS bin file define
 crypt_dev_os_bin_define()
 {
@@ -215,7 +215,7 @@ crypt_dev_os_bin_define()
 # Option define
 crypt_dev_optin_define()
 {
-    if [ ! -z "$CRYPT_DEV_KEY_FILE" ]
+    if [ ! -z "$CRYPT_DEV_KEY_FILE" -a ! "$CRYPT_DEV_KEY_FILE" = "-" ]
     then
         if [ ! -e "$CRYPT_DEV_KEY_FILE" ]
         then
@@ -234,9 +234,9 @@ crypt_dev_exec()
     crypt_dev_action_check
     crypt_dev_device_check
     crypt_dev_device_fs_check
-    crypt_dev_level_check
     crypt_dev_label_size_check
     crypt_dev_label_characters_check
+    crypt_dev_level_check
     crypt_dev_os_bin_define
     crypt_dev_optin_define
 
@@ -372,6 +372,32 @@ linux_luks_create()
     fi
 }
 
+# File system on device in mapper sync after create
+linux_luks_create_fs_sync()
+{
+    local fs_sync_timer_max=1
+    local fs_sync_timer_step=1
+    local fs_sync_timer=0
+
+    while [ $fs_sync_timer_max -gt $fs_sync_timer ]
+    do
+        case "$($CRYPT_DEV_BIN_FILE status $1)" in
+            *use* )
+                sleep $fs_sync_timer_step
+                fs_sync_timer=$(($fs_sync_timer + $fs_sync_timer_step))
+            ;;
+            * )
+                break
+            ;;
+        esac
+    done
+
+    if [ $fs_sync_timer -gt $fs_sync_timer_max ]
+    then
+        crypt_dev_error_exit "FS synchronization failed by timeout for '${$1}'"
+    fi
+}
+
 # File system on device in mapper create
 linux_luks_create_fs()
 {
@@ -381,10 +407,11 @@ linux_luks_create_fs()
     if [ "$CRYPT_DEV_FS" = "fat32" -o "$CRYPT_DEV_FS" = "vfat" ]
     then
         mkfs_create_options=" -F 32 -n ${CRYPT_DEV_LABEL}"
-    fi
-    if [ "$CRYPT_DEV_FS" = "fat32" ]
-    then
-        mkfs_type="fat"
+
+        if [ "$CRYPT_DEV_FS" = "fat32" ]
+        then
+            mkfs_type="fat"
+        fi
     fi
 
     mkfs.$mkfs_type $mkfs_create_options $1
@@ -396,8 +423,7 @@ linux_luks_create_fs()
         crypt_dev_error_exit "FS '${CRYPT_DEV_FS}' has not been created on '${1}'"
     fi
 
-    # Sync
-    sleep 4
+    linux_luks_create_fs_sync "$1"
 }
 
 # Device create
