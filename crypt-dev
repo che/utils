@@ -375,7 +375,7 @@ linux_luks_create()
 # File system on device in mapper sync after create
 linux_luks_create_fs_sync()
 {
-    local fs_sync_timer_max=1
+    local fs_sync_timer_max=300
     local fs_sync_timer_step=1
     local fs_sync_timer=0
 
