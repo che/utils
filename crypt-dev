@@ -147,14 +147,14 @@ crypt_dev_label_characters_check()
 
     while [ $label_size -gt $count ]
     do
-        count=$((count + 1))
+        count=$(($count + 1))
 
         for char in $CRYPT_DEV_LABEL_CHARACTERS_ARRAY
         do
             if [ ! "${device_label#${char}}" = "$device_label" ]
             then
                 device_label="${device_label#$char}"
-                label_count=$((label_count + 1))
+                label_count=$(($label_count + 1))
             fi
         done
     done
