@@ -21,22 +21,23 @@ CRYPT_DEV_FS_DEFAULT="ext4"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$3}"
 CRYPT_DEV_FS="${CRYPT_DEV_FS:=$CRYPT_DEV_FS_DEFAULT}"
 
+CRYPT_DEV_KEY_FILE_DEFAULT=""
+CRYPT_DEV_KEY_FILE="${CRYPT_DEV_KEY_FILE:=$4}"
+CRYPT_DEV_KEY_FILE="${CRYPT_DEV_KEY_FILE:=$CRYPT_DEV_KEY_FILE_DEFAULT}"
+CRYPT_DEV_KEY=""
+
 CRYPT_DEV_LABEL_DEFAULT="crypt-dev"
-CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$4}"
+CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$5}"
 CRYPT_DEV_LABEL="${CRYPT_DEV_LABEL:=$CRYPT_DEV_LABEL_DEFAULT}"
 CRYPT_DEV_LABEL_SIZE=16
 CRYPT_DEV_LABEL_FAT_SIZE=11
 CRYPT_DEV_LABEL_CHARACTERS_ARRAY="_ - 1 2 3 4 5 6 7 8 9 0 a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
 
 CRYPT_DEV_LEVEL_DEFAULT=1
-CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$5}"
+CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$6}"
 CRYPT_DEV_LEVEL="${CRYPT_DEV_LEVEL:=$CRYPT_DEV_LEVEL_DEFAULT}"
 CRYPT_DEV_LEVEL_MIN=$CRYPT_DEV_LEVEL_DEFAULT
 CRYPT_DEV_LEVEL_MAX=2
-
-CRYPT_DEV_KEY_FILE_DEFAULT=""
-CRYPT_DEV_KEY_FILE="${CRYPT_DEV_KEY_FILE:=$6}"
-CRYPT_DEV_KEY_FILE="${CRYPT_DEV_KEY_FILE:=$CRYPT_DEV_KEY_FILE_DEFAULT}"
 
 CRYPT_DEV_NAME="crypt_dev_${CRYPT_DEV}"
 CRYPT_DEV_NAME_IN="${CRYPT_DEV_NAME}_in"
@@ -92,7 +93,7 @@ crypt_dev_message()
 crypt_dev_action_check()
 {
     case "$CRYPT_DEV_ACTION" in
-        create | mount | umount )
+        create | mount | unmount )
         ;;
         * )
             crypt_dev_error_exit "Action '${CRYPT_DEV_ACTION}' is not supported"
@@ -212,18 +213,27 @@ crypt_dev_os_bin_define()
     esac
 }
 
-# Option define
-crypt_dev_optin_define()
+# Key check
+crypt_dev_key_check()
 {
-    if [ ! -z "$CRYPT_DEV_KEY_FILE" -a ! "$CRYPT_DEV_KEY_FILE" = "-" ]
+    if [ ! -z "$CRYPT_DEV_KEY_FILE" -o "$CRYPT_DEV_KEY_FILE" = "-" ]
     then
-        if [ ! -e "$CRYPT_DEV_KEY_FILE" ]
+        if [ "$CRYPT_DEV_KEY_FILE" = "-" ]
         then
-            crypt_dev_error_exit "File '${CRYPT_DEV_KEY_FILE}' does not exist"
-        fi
-        if [ ! -f "$CRYPT_DEV_KEY_FILE" ]
-        then
-            crypt_dev_error_exit "'${CRYPT_DEV_KEY_FILE}' is not file"
+            while read crypt_dev_key
+            do
+                CRYPT_DEV_KEY="echo \"${crypt_dev_key}\" | "
+                break
+            done
+        else
+            if [ ! -e "$CRYPT_DEV_KEY_FILE" ]
+            then
+                crypt_dev_error_exit "File '${CRYPT_DEV_KEY_FILE}' does not exist"
+            fi
+            if [ ! -f "$CRYPT_DEV_KEY_FILE" ]
+            then
+                crypt_dev_error_exit "'${CRYPT_DEV_KEY_FILE}' is not file"
+            fi
         fi
     fi
 }
@@ -237,8 +247,8 @@ crypt_dev_exec()
     crypt_dev_label_size_check
     crypt_dev_label_characters_check
     crypt_dev_level_check
+    crypt_dev_key_check
     crypt_dev_os_bin_define
-    crypt_dev_optin_define
 
     ${CRYPT_DEV_OS}_${CRYPT_DEV_ACTION}
 }
@@ -279,7 +289,7 @@ linux_luks_is()
 # LUKS device open
 linux_luks_open()
 {
-    $CRYPT_DEV_BIN_FILE open $CRYPT_DEV_OPTIONS $CRYPT_DEV_SYSTEM $CRYPT_DEV_NAME
+    $CRYPT_DEV_KEY$CRYPT_DEV_BIN_FILE open $CRYPT_DEV_OPTIONS $CRYPT_DEV_SYSTEM $CRYPT_DEV_NAME
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -292,7 +302,7 @@ linux_luks_open()
 # LUKS device in mapper open
 linux_luks_open_in()
 {
-    $CRYPT_DEV_BIN_FILE open $CRYPT_DEV_OPTIONS $CRYPT_DEV_MAPPER $CRYPT_DEV_NAME_IN
+    $CRYPT_DEV_KEY$CRYPT_DEV_BIN_FILE open $CRYPT_DEV_OPTIONS $CRYPT_DEV_MAPPER $CRYPT_DEV_NAME_IN
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -362,7 +372,7 @@ linux_luks_create()
         luks_create_options="--verify-passphrase ${luks_create_options}"
     fi
 
-    $CRYPT_DEV_BIN_FILE luksFormat $1 $CRYPT_DEV_OPTIONS $luks_create_options
+    $CRYPT_DEV_KEY$CRYPT_DEV_BIN_FILE luksFormat $1 $CRYPT_DEV_OPTIONS $luks_create_options
     CRYPT_DEV_EXIT_STATUS=$?
     if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
     then
@@ -503,11 +513,11 @@ linux_mount()
 }
 
 
-########    GNU/Linux -- LUKS -- Umount
+########    GNU/Linux -- LUKS -- Unmount
 
 
-# LUKS device umount (force)
-linux_luks_mapper_umount()
+# LUKS device unmount (force)
+linux_luks_mapper_unmount()
 {
     local crypt_dev_mapper_pids=""
 
@@ -525,12 +535,12 @@ linux_luks_mapper_umount()
         crypt_dev_warning "Killing proccesses${crypt_dev_mapper_pids} for '$CRYPT_DEV_MOUNT_DIR'"
 
         kill -9 $crypt_dev_mapper_pids
-        linux_luks_umount
+        linux_luks_unmount
     fi
 }
 
-# LUKS device in mapper umount
-linux_luks_umount()
+# LUKS device in mapper unmount
+linux_luks_unmount()
 {
     if [ -e "$CRYPT_DEV_MOUNT_DIR" ]
     then
@@ -544,18 +554,18 @@ linux_luks_umount()
         else
             crypt_dev_error "Device '${CRYPT_DEV_SYSTEM}' has not been unmounted correctly from directory '${CRYPT_DEV_MOUNT_DIR}'"
 
-            linux_luks_mapper_umount
+            linux_luks_mapper_unmount
         fi
     else
         crypt_dev_warning "Directory '${CRYPT_DEV_MOUNT_DIR}' does not exist"
     fi
 }
 
-# Device umount
-linux_umount()
+# Device unmount
+linux_unmount()
 {
     linux_cryptsetup_check
-    linux_luks_umount
+    linux_luks_unmount
     if [ $(linux_luks_is "$CRYPT_DEV_MAPPER_IN") -lt 2 ]
     then
         linux_luks_close_in
@@ -599,11 +609,11 @@ netbsd_mount()
 }
 
 
-########    NetBSD -- CGD -- Umount
+########    NetBSD -- CGD -- Unmount
 
 
-# Device umount
-netbsd_umount()
+# Device unmount
+netbsd_unmount()
 {
     netbsd_cgd_check
 }
@@ -644,11 +654,11 @@ freebsd_mount()
 }
 
 
-########    FreeBSD -- GELI -- Umount
+########    FreeBSD -- GELI -- Unmount
 
 
-# Device umount
-freebsd_umount()
+# Device unmount
+freebsd_unmount()
 {
     freebsd_geli_check
 }
@@ -689,11 +699,11 @@ openbsd_mount()
 }
 
 
-########    OpenBSD -- SVND -- Umount
+########    OpenBSD -- SVND -- Unmount
 
 
-# Device umount
-openbsd_umount()
+# Device unmount
+openbsd_unmount()
 {
     openbsd_bioctl_check
 }
@@ -731,11 +741,11 @@ dragonflybsd_mount()
 }
 
 
-########    DragonflyBSD -- LUKS -- Umount
+########    DragonflyBSD -- LUKS -- Unmount
 
 
-# Dvice umount
-dragonflybsd_umount()
+# Dvice unmount
+dragonflybsd_unmount()
 {
     dragonflybsd_cryptsetup_check
 }
@@ -776,11 +786,11 @@ macosx_mount()
 }
 
 
-########    Mac OS X -- FileVault2 -- Umount
+########    Mac OS X -- FileVault2 -- Unmount
 
 
-# Device umount
-macosx_umount()
+# Device unmount
+macosx_unmount()
 {
     macosx_hdiutil_check
 }
@@ -821,11 +831,11 @@ qnx_mount()
 }
 
 
-########    QNX -- FSCrypto -- Umount
+########    QNX -- FSCrypto -- Unmount
 
 
-# Device umount
-qnx_umount()
+# Device unmount
+qnx_unmount()
 {
     qnx_fscrypto_check
 }

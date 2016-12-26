@@ -21,7 +21,7 @@ License:
 crypt-dev
 ------------
 
-Create, mount, umount device for:
+Create, mount, unmount device for:
 
     GNU/Linux (LUKS)
     NetBSD (CGD)
@@ -36,49 +36,49 @@ By default environment variables:
     CRYPT_DEV_ACTION=mount
     CRYPT_DEV=sdb2
     CRYPT_DEV_FS=ext4
+    CRYPT_DEV_KEY_FILE= (for pipe CRYPT_DEV_KEY_FILE=-)
     CRYPT_DEV_LABEL=crypt-dev
     CRYPT_DEV_LEVEL=1
-    CRYPT_DEV_KEY_FILE=""
 
 Capabilities:
 
-    --------------------------------------------------------------
-    |    Operation   |                File system                |
-    |     system     |:-----------------------------------------:|
-    |                |  fat32   |   vfat   |   ntfs   |   ext4   |
-    |:--------------:|:--------:|:--------:|:--------:|:--------:|
-    |                |  create  |  create  |  create  |  create  |
-    |   GNU/Linux    |  mount   |  mount   |  mount   |  mount   |
-    |                |  umount  |  umount  |  umount  |  umount  |
-    |----------------|----------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |  mount   |
-    |     NetBSD     |  mount   |  umount  |  umount  |  umount  |
-    |                |  umount  |          |          |          |
-    |----------------|----------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |  mount   |
-    |     FreeBSD    |  mount   |  umount  |  umount  |  umount  |
-    |                |  umount  |          |          |          |
-    |----------------|----------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |  mount   |
-    |     OpenBSD    |  mount   |  umount  |  umount  |  umount  |
-    |                |  umount  |          |          |          |
-    |----------------|----------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |  mount   |
-    |  DragonflyBSD  |  mount   |  umount  |  umount  |  umount  |
-    |                |  umount  |          |          |          |
-    |----------------|----------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |  mount   |
-    |    Mac OS X    |  mount   |  umount  |  umount  |  umount  |
-    |                |  umount  |          |          |          |
-    |----------------|----------|----------|----------|----------|
-    |                |  create  |  mount   |  mount   |          |
-    |      QNX       |  mount   |  umount  |  umount  |    x     |
-    |                |  umount  |          |          |          |
-    --------------------------------------------------------------
+    ------------------------------------------------------------------
+    |   Operation    |                  File system                  |
+    |     system     |:---------------------------------------------:|
+    |                |   fat32   |   vfat    |   ntfs    |    ext4   |
+    |:--------------:|:---------:|:---------:|:---------:|:---------:|
+    |                |  create   |  create   |  create   |  create   |
+    |   GNU/Linux    |   mount   |   mount   |   mount   |   mount   |
+    |                |  unmount  |  unmount  |  unmount  |  unmount  |
+    |----------------|-----------|-----------|-----------|-----------|
+    |                |  create   |   mount   |   mount   |   mount   |
+    |     NetBSD     |   mount   |  unmount  |  unmount  |  unmount  |
+    |                |  unmount  |           |           |           |
+    |----------------|-----------|-----------|-----------|-----------|
+    |                |  create   |   mount   |   mount   |   mount   |
+    |     FreeBSD    |   mount   |  unmount  |  unmount  |  unmount  |
+    |                |  unmount  |           |           |           |
+    |----------------|-----------|-----------|-----------|-----------|
+    |                |  create   |   mount   |   mount   |   mount   |
+    |     OpenBSD    |   mount   |  unmount  |  unmount  |  unmount  |
+    |                |  unmount  |           |           |           |
+    |----------------|-----------|-----------|-----------|-----------|
+    |                |  create   |   mount   |   mount   |   mount   |
+    |  DragonflyBSD  |   mount   |  unmount  |  unmount  |  unmount  |
+    |                |  unmount  |           |           |           |
+    |----------------|-----------|-----------|-----------|-----------|
+    |                |  create   |   mount   |   mount   |   mount   |
+    |    Mac OS X    |   mount   |  unmount  |  unmount  |  unmount  |
+    |                |  unmount  |           |           |           |
+    |----------------|-----------|-----------|-----------|-----------|
+    |                |  create   |   mount   |   mount   |           |
+    |      QNX       |   mount   |  unmount  |  unmount  |     x     |
+    |                |  unmount  |           |           |           |
+    ------------------------------------------------------------------
 
 Execute (Shell script):
 
-    crypt-dev [action] [device] [file_system] [device_label] [level] [key_file]
+    crypt-dev [action] [device] [file_system] [key_file] [device_label] [level]
 
 License:
 
