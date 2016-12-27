@@ -58,6 +58,12 @@ CRYPT_DEV_OS=""
 # System utilities: echo, rm, mkdir, exit, mount, umount, uname, kill, lsof, which
 
 
+# Successful exit
+crypt_dev_exit()
+{
+    exit 0
+}
+
 # Print error message and exit
 crypt_dev_error_exit()
 {
@@ -321,12 +327,12 @@ linux_luks_close_in()
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
-            crypt_dev_message "Device '${CRYPT_DEV_MAPPER_IN}' has been closed"
-
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
+
+            crypt_dev_message "Device '${CRYPT_DEV_MAPPER_IN}' has been closed"
             if [ "$CRYPT_DEV_ACTION" = "$CRYPT_DEV_ACTION_DEFAULT" ]
             then
-                exit 0
+                crypt_dev_exit
             fi
         else
             crypt_dev_error_exit "Device '${CRYPT_DEV_MAPPER_IN}' has not been closed"
@@ -345,16 +351,16 @@ linux_luks_close()
         CRYPT_DEV_EXIT_STATUS=$?
         if [ $CRYPT_DEV_EXIT_STATUS -eq 0 ]
         then
-            crypt_dev_message "Device '${CRYPT_DEV_MAPPER}' has been closed"
-
             rm -rf "$CRYPT_DEV_MOUNT_DIR"
-            exit 0
+
+            crypt_dev_message "Device '${CRYPT_DEV_MAPPER}' has been closed"
+            crypt_dev_exit
         else
             crypt_dev_error_exit "Device '${CRYPT_DEV_MAPPER}' has not been closed"
         fi
     else
         crypt_dev_warning "Device '${CRYPT_DEV_MAPPER}' does not exist"
-        exit 0
+        crypt_dev_exit
     fi
 }
 
